@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Sustainability Tracker</title>
+
+    <!-- External CSS for font -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Internal CSS -->
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f7fa;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            color: #333;
+        }
+
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin: 0;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1100px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        /* Dashboard Layout */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background-color: white;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            overflow: hidden;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+        }
+
+        .card h3 {
+            font-size: 1.2rem;
+            color: #4CAF50;
+            margin-bottom: 15px;
+        }
+
+        .card p {
+            font-size: 1rem;
+            color: #666;
+            margin: 0;
+        }
+
+        .progress-bar {
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            height: 10px;
+            margin-top: 15px;
+            position: relative;
+        }
+
+        .progress {
+            background-color: #4CAF50;
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.5s ease-in-out;
+        }
+
+        /* Chart Section */
+        canvas {
+            margin-top: 20px;
+        }
+
+        /* Input and Button Styles */
+        .input-group {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        label {
+            font-size: 1rem;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        input[type="number"], select {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            width: 200px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        input[type="number"]:focus, select:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            font-size: 1rem;
+        }
+
+        .button:hover {
+            background-color: #388E3C;
+            transform: translateY(-3px);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 1rem;
+            color: #666;
+            background-color: #333;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        footer p {
+            margin: 10px 0;
+        }
+
+        footer a {
+            color: #4CAF50;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        footer a:hover {
+            color: #fff;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            transition: all 0.4s ease;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 25px;
+            border-radius: 10px;
+            width: 70%;
+            max-width: 600px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 25px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            transition: color 0.2s ease;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Virtual Sustainability Tracker</h1>
+    </header>
+
+    <div class="container" role="main">
+        <h2>Your Sustainability Dashboard</h2>
+
+        <div class="dashboard" aria-label="Sustainability Metrics">
+            <!-- Carbon Footprint Card -->
+            <div class="card" aria-labelledby="carbon-footprint-title">
+                <h3 id="carbon-footprint-title">Carbon Footprint</h3>
+                <p>Current CO₂ emissions: <span id="carbon-footprint">0</span> kg</p>
+                <div class="progress-bar" aria-label="Carbon Footprint Progress">
+                    <div id="carbon-progress" class="progress" style="width: 0%;"></div>
+                </div>
+                <canvas id="carbonChart" aria-label="Carbon Footprint Chart"></canvas>
+            </div>
+
+            <!-- Water Usage Card -->
+            <div class="card" aria-labelledby="water-usage-title">
+                <h3 id="water-usage-title">Water Usage</h3>
+                <p>Current Water Consumption: <span id="water-usage">0</span> Liters</p>
+                <div class="progress-bar" aria-label="Water Usage Progress">
+                    <div id="water-progress" class="progress" style="width: 0%;"></div>
+                </div>
+                <canvas id="waterChart" aria-label="Water Usage Chart"></canvas>
+            </div>
+
+            <!-- Waste Reduction Card -->
+            <div class="card" aria-labelledby="waste-reduction-title">
+                <h3 id="waste-reduction-title">Waste Reduction</h3>
+                <p>Waste Reduced: <span id="waste-reduction">0</span> kg</p>
+                <div class="progress-bar" aria-label="Waste Reduction Progress">
+                    <div id="waste-progress" class="progress" style="width: 0%;"></div>
+                </div>
+                <canvas id="wasteChart" aria-label="Waste Reduction Chart"></canvas>
+            </div>
+
+            <!-- Carbon Footprint Calculator Card -->
+            <div class="card" aria-labelledby="carbon-calculator-title">
+                <h3 id="carbon-calculator-title">Carbon Footprint Calculator</h3>
+                <div class="input-group">
+                    <label for="commute">Daily Commute (km): </label>
+                    <input type="number" id="commute" placeholder="0" aria-describedby="commute-help">
+                    <small id="commute-help">Enter your daily commute distance in kilometers.</small>
+                </div>
+                <div class="input-group">
+                    <label for="electricity">Monthly Electricity Usage (kWh): </label>
+                    <input type="number" id="electricity" placeholder="0" aria-describedby="electricity-help">
+                    <small id="electricity-help">Enter your monthly electricity usage in kilowatt-hours.</small>
+                </div>
+                <div class="input-group">
+                    <label for="gas">Monthly Gas Usage (m³): </label>
+                    <input type="number" id="gas" placeholder="0" aria-describedby="gas-help">
+                    <small id="gas-help">Enter your monthly gas usage in cubic meters.</small>
+                </div>
+                <div class="input-group">
+                    <button class="button" onclick="calculateCarbonFootprint()">Calculate Carbon Footprint</button>
+                </div>
+            </div>
+        </div>
+
+        <h3>Choose Chart Type</h3>
+        <select id="chartType" onchange="changeChartType()">
+            < option value="line">Line Chart</option>
+            <option value="bar">Bar Chart</option>
+        </select>
+
+        <div class="result">
+            <h3>Calculated Carbon Footprint: <span id="calculated-footprint">0</span> kg</h3>
+        </div>
+
+        <button class="button" onclick="openModal()">Learn More About the Calculations</button>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Virtual Sustainability Tracker | <a href="#">Privacy Policy</a> | <a href="#">Contact</a></p>
+        <p>Follow Us: <a href="#">Facebook</a> | <a href="#">Twitter</a> | <a href="#">Instagram</a></p>
+    </footer>
+
+    <!-- Modal -->
+    <div id="infoModal" class="modal" role="dialog" aria-labelledby="modal-title" aria-describedby="modal-description">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()" aria-label="Close Modal">&times;</span>
+            <h2 id="modal-title">How the Calculations are Made</h2>
+            <p id="modal-description"><strong>Carbon Footprint:</strong> Your carbon footprint is calculated based on two main factors:</p>
+            <ul>
+                <li><strong>Commute Distance:</strong> Every km traveled by car emits an estimated 0.25 kg of CO₂.</li>
+                <li><strong>Electricity Usage:</strong> Each kWh of electricity consumed emits about 0.7 kg of CO₂.</li>
+                <li><strong>Gas Usage:</strong> Each m³ of natural gas used emits about 1.9 kg of CO₂.</li>
+            </ul>
+            <p><strong>Water Usage:</strong> We assume that for every kg of CO₂ emitted, your water usage increases by about 0.1 liters.</p>
+            <p><strong>Waste Reduction:</strong> Similarly, for every kg of CO₂ emitted, your waste reduction is estimated to increase by about 0.05 kg.</p>
+        </div>
+    </div>
+
+    <!-- Internal JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Initialize the charts for carbon footprint, water, and waste
+        var carbonCtx = document.getElementById('carbonChart').getContext('2d');
+        var waterCtx = document.getElementById('waterChart').getContext('2d');
+        var wasteCtx = document.getElementById('wasteChart').getContext('2d');
+
+        // Create empty data arrays for the charts
+        var carbonData = {
+            labels: [],
+            datasets: [{
+                label: 'Carbon Footprint',
+                data: [],
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                fill: true,
+                tension: 0.1
+            }]
+        };
+
+        var waterData = {
+            labels: [],
+            datasets: [{
+                label: 'Water Usage',
+                data: [],
+                borderColor: 'rgba(54, 162, 235, 1)',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                fill: true,
+                tension: 0.1
+            }]
+        };
+
+        var wasteData = {
+            labels: [],
+            datasets: [{
+                label: 'Waste Reduction',
+                data: [],
+                borderColor: 'rgba(255, 159, 64, 1)',
+                backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                fill: true,
+                tension: 0.1
+            }]
+        };
+
+        // Create chart instances with default type 'line'
+        var carbonChart = new Chart(carbonCtx, {
+            type: 'line',
+            data: carbonData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.dataset.label + ": " + tooltipItem.raw.toFixed(2) + " kg";
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        var waterChart = new Chart(waterCtx, {
+            type: 'line',
+            data: waterData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.dataset.label + ": " + tooltipItem .raw.toFixed(2) + " L";
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        var wasteChart = new Chart(wasteCtx, {
+            type: 'line',
+            data: wasteData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.dataset.label + ": " + tooltipItem.raw.toFixed(2) + " kg";
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Function to calculate carbon footprint and update progress and charts
+        function calculateCarbonFootprint() {
+            var commuteDistance = parseFloat(document.getElementById('commute').value) || 0;
+            var electricityUsage = parseFloat(document.getElementById('electricity').value) || 0;
+            var gasUsage = parseFloat(document.getElementById('gas').value) || 0;
+
+            var commuteCarbon = commuteDistance * 0.25; // kg CO2 per km
+            var electricityCarbon = electricityUsage * 0.7; // kg CO2 per kWh
+            var gasCarbon = gasUsage * 1.9; // kg CO2 per m3 of gas
+
+            var totalCarbonFootprint = commuteCarbon + electricityCarbon + gasCarbon;
+
+            document.getElementById('calculated-footprint').textContent = totalCarbonFootprint.toFixed(2);
+            updateProgressBars(totalCarbonFootprint);
+            updateCharts(totalCarbonFootprint);
+        }
+
+        function updateProgressBars(carbonFootprint) {
+            var maxCarbonFootprint = 1000; // Max CO2 target in kg for progress
+            var progressPercentage = Math.min((carbonFootprint / maxCarbonFootprint) * 100, 100);
+
+            // Carbon progress bar update
+            document.getElementById('carbon-progress').style.width = progressPercentage + '%';
+            document.getElementById('carbon-footprint').textContent = carbonFootprint.toFixed(2);
+            
+            var waterUsage = progressPercentage * 0.5;  // Assuming linear scale for water usage
+            document.getElementById('water-progress').style.width = waterUsage + '%';
+            document.getElementById('water-usage').textContent = waterUsage.toFixed(2);
+
+            var maxWasteReduction = 200;
+            var wasteReduction = progressPercentage * 0.2;
+
+            document.getElementById('waste-progress').style.width = wasteReduction + '%';
+            document.getElementById('waste-reduction').textContent = wasteReduction.toFixed(2);
+        }
+
+        function updateCharts(totalCarbonFootprint) {
+            // Add new data points to the charts
+            carbonData.labels.push(new Date().toLocaleTimeString());
+            carbonData.datasets[0].data.push(totalCarbonFootprint);
+
+            waterData.labels.push(new Date().toLocaleTimeString());
+            waterData.datasets[0].data.push(totalCarbonFootprint * 0.5);
+
+            wasteData.labels.push(new Date().toLocaleTimeString());
+            wasteData.datasets[0].data.push(totalCarbonFootprint * 0.2);
+
+            carbonChart.update();
+            waterChart.update();
+            wasteChart.update();
+        }
+
+        // Function to change chart types
+        function changeChartType() {
+            var newChartType = document.getElementById('chartType').value;
+            carbonChart.config.type = newChartType;
+            waterChart.config.type = newChartType;
+            wasteChart.config.type = newChartType;
+            carbonChart.update();
+            waterChart.update();
+            wasteChart.update();
+        }
+
+        // Modal functionality
+        function openModal() {
+            document.getElementById('infoModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('infoModal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
