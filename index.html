@@ -3,149 +3,504 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Virtual Sustainability Tracker</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Carbon Footprint</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: #2a303c;
+            color: #e0e6ed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .light-mode body {
+            background-color: #f0f4f8;
+            color: #343a40;
+        }
+
+        /* Container */
+        .container {
+            background-color: #343a40;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 600px;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            display: grid;
+            gap: 15px;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 500px) {
+            .container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .light-mode .container {
+            background-color: #fff;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Heading */
+        h1 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 18px;
+            font-weight: 600;
+            transition: color 0.3s;
+            grid-column: 1 / -1;
+        }
+
+        .light-mode h1 {
+            color: #2c3e50;
+        }
+
+        /* Form Elements */
+        .input-group {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+            color: #abb8c3;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .light-mode label {
+            color: #495057;
+        }
+
+        input[type="number"],
+        select {
+            width: calc(100% - 12px);
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #495057;
+            background-color: #495057;
+            color: #fff;
+            box-sizing: border-box;
+            font-size: 0.9rem;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        .light-mode input[type="number"],
+        .light-mode select {
+            background-color: #e9ecef;
+            color: #495057;
+            border-color: #ced4da;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #5cb85c;
+            box-shadow: 0 0 0 0.2rem rgba(76, 174, 76, 0.25);
+        }
+
+        input[type="number"].error,
+        select.error {
+            border-color: #d9534f;
+            box-shadow: 0 0 0 0.2rem rgba(217, 83, 79, 0.25);
+        }
+
+        /* Actions */
+        .actions {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .actions > div {
+            display: flex;
+            gap: 8px;
+        }
+
+        button {
+            background-color: #5cb85c;
+            color: white;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        button:hover {
+            background-color: #4cae4c;
+        }
+
+        .light-mode button {
+            background-color: #5cb85c;
+            color: white;
+        }
+
+        .light-mode button:hover {
+            background-color: #4cae4c;
+        }
+
+        button.secondary {
+            background-color: #6c757d;
+        }
+
+        button.secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .light-mode button.secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .light-mode button.secondary:hover {
+            background-color: #5a6268;
+        }
+
+        button[disabled] {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+
+        button[disabled]:hover {
+            background-color: #aaa;
+        }
+
+        /* Results */
+        #results {
+            grid-column: 1 / -1;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 7px;
+            background-color: #495057;
+            color: #fff;
+            transition: background-color 0.3s, color 0.3s;
+            display: none;
+            font-size: 0.85rem;
+        }
+
+        .light-mode #results {
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #dee2e6;
+        }
+
+        #results h2 {
+            margin-top: 0;
+            color: #fff;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 1rem;
+            transition: color 0.3s;
+        }
+
+        .light-mode #results h2 {
+            color: #343a40;
+        }
+
+        #results p {
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+
+        #results strong {
+            color: #5bc0de;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .light-mode #results strong {
+            color: #007bff;
+        }
+
+        #results hr {
+            border: none;
+            border-top: 1px solid #6c757d;
+            margin: 10px 0;
+        }
+
+        .light-mode #results hr {
+            border-top: 1px solid #ced4da;
+        }
+
+        /* Suggestions */
+        #suggestions {
+            margin-top: 12px;
+        }
+
+        #suggestions h3 {
+            color: #fff;
+            font-weight: 500;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .light-mode #suggestions h3 {
+            color: #495057;
+        }
+
+        #suggestions p {
+            margin-bottom: 5px;
+            line-height: 1.3;
+            font-size: 0.8rem;
+            color: #adb5bd;
+            transition: color 0.3s;
+        }
+
+        .light-mode #suggestions p {
+            color: #6c757d;
+        }
+
+        /* Media Queries */
+        @media (max-width: 400px) {
+            .actions {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            .actions > div {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+        }
+    </style>
 </head>
-<body>
-    <header>
-        <h1>Virtual Sustainability Tracker</h1>
-        <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode">
-            🌓
-        </button>
-    </header>
+<body class="dark-mode">
+    <div class="container dark-mode">
+        <h1><i class="fas fa-leaf"></i> Footprint</h1>
 
-    <main class="container">
-        <h2>Your Sustainability Dashboard</h2>
-        
-        <div class="dashboard">
-            <!-- Carbon Footprint Card -->
-            <div class="card">
-                <h3>Carbon Footprint</h3>
-                <p>Current CO<sub>2</sub> emissions: <span id="carbon-footprint">0</span> kg</p>
-                <div class="progress-bar">
-                    <div id="carbon-progress" class="progress"></div>
-                </div>
-                <canvas id="carbonChart"></canvas>
-            </div>
-
-            <!-- Water Usage Card -->
-            <div class="card">
-                <h3>Water Usage</h3>
-                <p>Current Water Consumption: <span id="water-usage">0</span> Liters</p>
-                <div class="progress-bar">
-                    <div id="water-progress" class="progress"></div>
-                </div>
-                <canvas id="waterChart"></canvas>
-            </div>
-
-            <!-- Waste Reduction Card -->
-            <div class="card">
-                <h3>Waste Reduction</h3>
-                <p>Waste Reduced: <span id="waste-reduction">0</span> kg</p>
-                <div class="progress-bar">
-                    <div id="waste-progress" class="progress"></div>
-                </div>
-                <canvas id="wasteChart"></canvas>
-            </div>
+        <div class="input-group">
+            <label for="milesDriven"><i class="fas fa-road"></i> Miles/Week:</label>
+            <input type="number" id="milesDriven" min="0" value="100" aria-label="Average Miles Driven per Week">
         </div>
 
-        <!-- Chart Controls -->
-        <div class="chart-controls">
-            <label for="chartType">Chart Type:</label>
-            <select id="chartType">
-                <option value="line">Line Chart</option>
-                <option value="bar">Bar Chart</option>
-                <option value="radar">Radar Chart</option>
+        <div class="input-group">
+            <label for="fuelEfficiency"><i class="fas fa-gas-pump"></i> MPG:</label>
+            <input type="number" id="fuelEfficiency" min="1" value="25" aria-label="Fuel Efficiency of your car (MPG)">
+        </div>
+
+        <div class="input-group">
+            <label for="electricityUsage"><i class="fas fa-bolt"></i> kWh/Month:</label>
+            <input type="number" id="electricityUsage" min="0" value="300" aria-label="Monthly Electricity Usage in kWh">
+        </div>
+
+        <div class="input-group">
+            <label for="meatConsumption" title="Consider frequency and portion sizes."><i class="fas fa-utensils"></i> Meat:</label>
+            <select id="meatConsumption" aria-label="Weekly Meat Consumption">
+                <option value="0">Very Low</option>
+                <option value="1">Low</option>
+                <option value="2" selected>Moderate</option>
+                <option value="3">High</option>
             </select>
         </div>
 
-        <!-- Calculator Section -->
-        <div class="card">
-            <h3>Carbon Footprint Calculator</h3>
-            <form id="calculatorForm">
-                <div class="input-group">
-                    <label for="commute">Daily Commute Distance (km):</label>
-                    <input type="number" id="commute" min="0" step="0.1" required>
-                    <span id="commute-error" class="error"></span>
-                </div>
-
-                <div class="input-group">
-                    <label for="electricity">Monthly Electricity Usage (kWh):</label>
-                    <input type="number" id="electricity" min="0" step="0.1" required>
-                    <span id="electricity-error" class="error"></span>
-                </div>
-
-                <div class="input-group">
-                    <label for="gas">Monthly Gas Usage (m³):</label>
-                    <input type="number" id="gas" min="0" step="0.1" required>
-                    <span id="gas-error" class="error"></span>
-                </div>
-
-                <button type="submit" class="button">Calculate Carbon Footprint</button>
-            </form>
-
-            <div class="result">
-                <h4>Calculated Carbon Footprint:</h4>
-                <p><span id="calculated-footprint">0</span> kg CO<sub>2</sub></p>
+        <div class="actions">
+            <button id="calculateBtn" class="primary" aria-label="Calculate Carbon Footprint">
+                <i class="fas fa-calculator"></i> Calculate
+            </button>
+            <div>
+                <button id="resetBtn" class="secondary" aria-label="Reset Form">
+                    <i class="fas fa-undo"></i> Reset
+                </button>
+                <button id="themeToggleBtn" class="secondary" aria-label="Toggle Dark Mode">
+                    <i class="fas fa-sun"></i> <span id="darkModeText">Light Mode</span>
+                </button>
             </div>
         </div>
 
-        <!-- Export Data Button -->
-        <button id="exportData" class="export-btn">Export Data</button>
-
-        <!-- Achievements Section -->
-        <section class="achievements">
-            <h2>Your Achievements</h2>
-            <div class="badges-container">
-                <div class="badge" id="firstEntry">🌱<br>First Entry</div>
-                <div class="badge" id="carbonReducer">🌍<br>Carbon Reducer</div>
-                <div class="badge" id="waterSaver">💧<br>Water Saver</div>
-                <div class="badge" id="wasteManager">♻️<br>Waste Manager</div>
-            </div>
-        </section>
-
-        <!-- Sustainability Tips Section -->
-        <section class="tips-section">
-            <h2>Sustainability Tips</h2>
-            <div id="tipsContainer">
-                <!-- Tips will be dynamically added here -->
-            </div>
-        </section>
-
-        <!-- Alert Message -->
-        <div id="alert" class="alert" style="display: none;"></div>
-
-        <!-- Learn More Button -->
-        <button id="learnMoreBtn" class="button mt-1">Learn More About Carbon Footprint</button>
-    </main>
-
-    <!-- Modal -->
-    <div id="infoModal" class="modal">
-        <div class="modal-content">
-            <button id="closeModal" class="close" aria-label="Close modal">&times;</button>
-            <h2>Understanding Your Carbon Footprint</h2>
-            <p>Your carbon footprint is the total amount of greenhouse gases (including carbon dioxide and methane) that are generated by your actions. The main contributors to your personal carbon footprint include:</p>
-            <ul>
-                <li>Transportation (daily commute, air travel)</li>
-                <li>Home energy use (electricity, heating)</li>
-                <li>Diet and food choices</li>
-                <li>Consumer habits</li>
-            </ul>
-            <p>By tracking and reducing your carbon footprint, you can help combat climate change and create a more sustainable future.</p>
+        <div id="results" role="region" aria-live="polite">
+            <h2><i class="fas fa-chart-bar"></i> Footprint Analysis</h2>
+            <p id="transportationFootprint"><i class="fas fa-car"></i> Transport: <span id="transportationValue"></span> kg CO2e/wk</p>
+            <p id="energyFootprint"><i class="fas fa-home"></i> Home: <span id="energyValue"></span> kg CO2e/month</p>
+            <p id="dietFootprint"><i class="fas fa-carrot"></i> Diet: <span id="dietValue"></span> kg CO2e/wk</p>
+            <hr>
+            <p><strong>Total: <span id="totalFootprint"></span> kg CO2e/wk</strong></p>
+            <p><small><i class="fas fa-info-circle"></i> Estimates.</small></p>
+            <p><i class="fas fa-tree"></i> Offset by ~<span id="treesRequired"></span> trees/year.</p>
+            <div id="suggestions"></div>
         </div>
     </div>
 
-    <footer>
-        <p>&copy; 2024 Virtual Sustainability Tracker. All rights reserved.</p>
-        <nav>
-            <a href="#" aria-label="Privacy Policy">Privacy Policy</a>
-            <a href="#" aria-label="Terms of Service">Terms of Service</a>
-            <a href="#" aria-label="Contact Us">Contact Us</a>
-        </nav>
-    </footer>
+    <script>
+        // --- Constants ---
+        const GASOLINE_EMISSION_FACTOR = 8.887;
+        const ELECTRICITY_EMISSION_FACTOR = 0.5;
+        const TREES_CO2_ABSORPTION_PER_YEAR = 22;
 
-    <script src="script.js"></script>
+        // --- DOM Elements ---
+        const domElements = {
+            body: document.body,
+            container: document.querySelector('.container'),
+            milesDrivenInput: document.getElementById('milesDriven'),
+            fuelEfficiencyInput: document.getElementById('fuelEfficiency'),
+            electricityUsageInput: document.getElementById('electricityUsage'),
+            meatConsumptionSelect: document.getElementById('meatConsumption'),
+            calculateBtn: document.getElementById('calculateBtn'),
+            resetBtn: document.getElementById('resetBtn'),
+            themeToggleBtn: document.getElementById('themeToggleBtn'),
+            darkModeTextSpan: document.getElementById('darkModeText'),
+            resultsDiv: document.getElementById('results'),
+            transportationValueSpan: document.getElementById('transportationValue'),
+            energyValueSpan: document.getElementById('energyValue'),
+            dietValueSpan: document.getElementById('dietValue'),
+            totalFootprintSpan: document.getElementById('totalFootprint'),
+            treesRequiredSpan: document.getElementById('treesRequired'),
+            suggestionsDiv: document.getElementById('suggestions'),
+        };
+
+        // --- Functions ---
+        function validateInputs() {
+            let isValid = true;
+            resetErrorStyles();
+
+            if (parseFloat(domElements.milesDrivenInput.value) < 0) {
+                domElements.milesDrivenInput.classList.add('error');
+                isValid = false;
+            }
+            if (parseFloat(domElements.fuelEfficiencyInput.value) <= 0) {
+                domElements.fuelEfficiencyInput.classList.add('error');
+                isValid = false;
+            }
+            if (parseFloat(domElements.electricityUsageInput.value) < 0) {
+                domElements.electricityUsageInput.classList.add('error');
+                isValid = false;
+            }
+            return isValid;
+        }
+
+        function resetErrorStyles() {
+            domElements.milesDrivenInput.classList.remove('error');
+            domElements.fuelEfficiencyInput.classList.remove('error');
+            domElements.electricityUsageInput.classList.remove('error');
+        }
+
+        function calculateTransportationFootprint(milesDriven, fuelEfficiency) {
+            const gallonsUsedPerWeek = milesDriven / fuelEfficiency;
+            return gallonsUsedPerWeek * GASOLINE_EMISSION_FACTOR;
+        }
+
+        function calculateEnergyFootprint(electricityUsage) {
+            return electricityUsage * ELECTRICITY_EMISSION_FACTOR;
+        }
+
+        function calculateDietFootprint(meatConsumptionLevel) {
+            let dietEmissionFactor = 0;
+            switch (meatConsumptionLevel) {
+                case 0: dietEmissionFactor = 10; break;
+                case 1: dietEmissionFactor = 25; break;
+                case 2: dietEmissionFactor = 50; break;
+                case 3: dietEmissionFactor = 75; break;
+                default: dietEmissionFactor = 50; // Default to moderate
+            }
+            return dietEmissionFactor;
+        }
+
+        function calculateTotalFootprint(transportation, energy, diet) {
+            const energyFootprintWeekly = energy / 4;
+            return transportation + energyFootprintWeekly + diet;
+        }
+
+        function calculateTreesRequired(totalFootprint) {
+            const annualCO2Footprint = totalFootprint * 52;
+            return annualCO2Footprint / TREES_CO2_ABSORPTION_PER_YEAR;
+        }
+
+        function displayResults(transportation, energy, diet, total, trees) {
+            domElements.transportationValueSpan.textContent = transportation.toFixed(1);
+            domElements.energyValueSpan.textContent = energy.toFixed(1);
+            domElements.dietValueSpan.textContent = diet.toFixed(1);
+            domElements.totalFootprintSpan.innerHTML = `<strong>${total.toFixed(1)}</strong>`;
+            domElements.treesRequiredSpan.textContent = trees.toFixed(0);
+            domElements.resultsDiv.style.display = 'block';
+        }
+
+        function updateSuggestions(transportation, energy, diet, total) {
+            domElements.suggestionsDiv.innerHTML = "<h3><i class='fas fa-lightbulb'></i> Ways to Reduce:</h3>";
+            const thirdOfTotal = total / 3;
+            const annualEnergyFootprint = (energy * 52) / 12; // Approximate weekly equivalent
+
+            if (transportation > thirdOfTotal) {
+                domElements.suggestionsDiv.innerHTML += "<p><i class='fas fa-chevron-right'></i> Consider public transportation or cycling.</p>";
+            }
+            if (annualEnergyFootprint > thirdOfTotal) {
+                domElements.suggestionsDiv.innerHTML += "<p><i class='fas fa-chevron-right'></i> Switch to energy-efficient appliances.</p>";
+            }
+            if (diet > thirdOfTotal) {
+                domElements.suggestionsDiv.innerHTML += "<p><i class='fas fa-chevron-right'></i> Reduce your meat consumption.</p>";
+            }
+        }
+
+        function handleCalculate() {
+            if (!validateInputs()) {
+                alert("Please correct the invalid inputs.");
+                return;
+            }
+
+            const milesDriven = parseFloat(domElements.milesDrivenInput.value);
+            const fuelEfficiency = parseFloat(domElements.fuelEfficiencyInput.value);
+            const electricityUsage = parseFloat(domElements.electricityUsageInput.value);
+            const meatConsumptionLevel = parseInt(domElements.meatConsumptionSelect.value);
+
+            domElements.calculateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculating...';
+            domElements.calculateBtn.disabled = true;
+
+            setTimeout(() => {
+                const transportationFootprint = calculateTransportationFootprint(milesDriven, fuelEfficiency);
+                const energyFootprint = calculateEnergyFootprint(electricityUsage);
+                const dietFootprint = calculateDietFootprint(meatConsumptionLevel);
+                const totalFootprint = calculateTotalFootprint(transportationFootprint, energyFootprint, dietFootprint);
+                const treesRequired = calculateTreesRequired(totalFootprint);
+
+                displayResults(transportationFootprint, energyFootprint, dietFootprint, totalFootprint, treesRequired);
+                updateSuggestions(transportationFootprint, energyFootprint, dietFootprint, totalFootprint);
+
+                domElements.calculateBtn.innerHTML = '<i class="fas fa-check"></i> Calculated!';
+                setTimeout(() => {
+                    domElements.calculateBtn.innerHTML = '<i class="fas fa-calculator"></i> Calculate';
+                    domElements.calculateBtn.disabled = false;
+                }, 1500);
+            }, 1000);
+        }
+
+        function handleReset() {
+            domElements.milesDrivenInput.value = 100;
+            domElements.fuelEfficiencyInput.value = 25;
+            domElements.electricityUsageInput.value = 300;
+            domElements.meatConsumptionSelect.value = '2';
+            domElements.resultsDiv.style.display = 'none';
+            resetErrorStyles();
+        }
+
+        function toggleTheme() {
+            domElements.body.classList.toggle('light-mode');
+            domElements.container.classList.toggle('light-mode');
+            const isLightMode = domElements.body.classList.contains('light-mode');
+            domElements.darkModeTextSpan.textContent = isLightMode ? 'Dark Mode' : 'Light Mode';
+            domElements.themeToggleBtn.innerHTML = isLightMode ? '<i class="fas fa-moon"></i> Dark Mode' : '<i class="fas fa-sun"></i> Light Mode';
+        }
+
+        // --- Event Listeners ---
+        domElements.calculateBtn.addEventListener('click', handleCalculate);
+        domElements.resetBtn.addEventListener('click', handleReset);
+        domElements.themeToggleBtn.addEventListener('click', toggleTheme);
+    </script>
 </body>
 </html>
