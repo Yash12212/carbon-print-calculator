@@ -3,133 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carbon Footprint</title>
+    <title>Compact Carbon Footprint Calculator</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <!-- Font Awesome for icons -->
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Chart.js for data visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Chart.js plugin for displaying data labels on the chart -->
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
     <style>
-        /* ----- General Body and Theme Styles ----- */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            background-color: #2a303c; /* Dark mode background */
-            color: #e0e6ed; /* Dark mode text color */
+            padding: 15px;
+            background-color: #2a303c;
+            color: #e0e6ed;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            transition: background-color 0.3s, color 0.3s; /* Smooth theme transition */
+            font-size: 15px;
+            transition: background-color 0.3s, color 0.3s;
+            overflow: hidden;
         }
 
         .light-mode body {
-            background-color: #f0f4f8; /* Light mode background */
-            color: #343a40; /* Light mode text color */
+            background-color: #f0f4f8;
+            color: #343a40;
         }
 
-        /* ----- Container Styles ----- */
         .container {
-            background-color: #343a40; /* Dark mode container background */
-            padding: 25px;
+            background-color: #343a40;
+            padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-            width: 90%;
-            max-width: 600px;
-            transition: background-color 0.3s, box-shadow 0.3s;
-            display: grid;
-            gap: 15px;
-            grid-template-columns: 1fr; /* Single column by default */
-        }
-
-        /* Two columns on larger screens */
-        @media (min-width: 500px) {
-            .container {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            transition: background-color 0.3s, box-shadow 0.3s, max-width 0.3s ease-in-out;
+            max-height: calc(100vh - 30px);
+            overflow: hidden;
         }
 
         .light-mode .container {
-            background-color: #fff; /* Light mode container background */
+            background-color: #ffffff;
             box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
         }
 
-        /* ----- Heading Styles ----- */
+        .input-panel,
+        .results-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+        }
+        .input-panel::-webkit-scrollbar,
+        .results-panel::-webkit-scrollbar { width: 6px; }
+        .input-panel::-webkit-scrollbar-track,
+        .results-panel::-webkit-scrollbar-track { background: #343a40; border-radius: 3px; }
+        .input-panel::-webkit-scrollbar-thumb,
+        .results-panel::-webkit-scrollbar-thumb { background-color: #6c757d; border-radius: 3px; }
+
+        @supports (scrollbar-color: auto) {
+          .light-mode .input-panel,
+          .light-mode .results-panel {
+             scrollbar-color: #adb5bd #e9ecef;
+          }
+        }
+        .light-mode .input-panel::-webkit-scrollbar-track,
+        .light-mode .results-panel::-webkit-scrollbar-track { background: #e9ecef; }
+        .light-mode .input-panel::-webkit-scrollbar-thumb,
+        .light-mode .results-panel::-webkit-scrollbar-thumb { background-color: #adb5bd; }
+
+        .results-panel {
+            display: none;
+        }
+
         h1 {
             text-align: center;
-            color: #fff; /* Dark mode heading color */
-            margin-bottom: 18px;
+            color: #fff;
+            margin: 0 0 10px 0;
             font-weight: 600;
+            font-size: 1.4rem;
             transition: color 0.3s;
-            grid-column: 1 / -1; /* Span full width */
         }
-
+        h1 .fas {
+            margin-right: 8px;
+            color: #5cb85c;
+        }
         .light-mode h1 {
-            color: #2c3e50; /* Light mode heading color */
+            color: #2c3e50;
         }
 
-        /* ----- Input Group Styles ----- */
+        .input-fields-grid {
+             display: grid;
+             grid-template-columns: 1fr;
+             gap: 15px;
+        }
+
         .input-group {
-            margin-bottom: 0;
+            display: flex;
+            flex-direction: column;
         }
 
         label {
-            display: block;
             margin-bottom: 4px;
             font-weight: 500;
-            color: #abb8c3; /* Dark mode label color */
-            font-size: 0.9rem;
+            color: #abb8c3;
+            font-size: 0.85rem;
             transition: color 0.3s;
         }
-
+        label .info-icon {
+            margin-left: 4px;
+            cursor: help;
+            color: #8892b0;
+            font-size: 0.85em;
+        }
+        label .input-icon {
+            margin-right: 5px;
+            width: 14px;
+            text-align: center;
+            color: #8892b0;
+        }
         .light-mode label {
-            color: #495057; /* Light mode label color */
+            color: #495057;
+        }
+        .light-mode label .info-icon,
+        .light-mode label .input-icon {
+            color: #6c757d;
         }
 
         input[type="number"],
         select {
-            width: calc(100% - 12px); /* Account for padding and border */
+            width: 100%;
             padding: 8px;
             border-radius: 5px;
-            border: 1px solid #495057; /* Dark mode input border */
-            background-color: #495057; /* Dark mode input background */
-            color: #fff; /* Dark mode input text color */
-            box-sizing: border-box;
+            border: 1px solid #495057;
+            background-color: #495057;
+            color: #fff;
             font-size: 0.9rem;
             transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
-
         .light-mode input[type="number"],
         .light-mode select {
-            background-color: #e9ecef; /* Light mode input background */
-            color: #495057; /* Light mode input text color */
-            border-color: #ced4da; /* Light mode input border */
+            background-color: #eef2f7;
+            color: #495057;
+            border-color: #ced4da;
         }
 
         input[type="number"]:focus,
         select:focus {
             outline: none;
             border-color: #5cb85c;
-            box-shadow: 0 0 0 0.2rem rgba(76, 174, 76, 0.25);
+            box-shadow: 0 0 0 0.15rem rgba(76, 174, 76, 0.25);
         }
 
         input[type="number"].error,
         select.error {
-            border-color: #d9534f;
-            box-shadow: 0 0 0 0.2rem rgba(217, 83, 79, 0.25);
+            border-color: #d9534f !important;
+            box-shadow: 0 0 0 0.15rem rgba(217, 83, 79, 0.25) !important;
+        }
+        .error-message {
+            color: #f67f7c;
+            font-size: 0.75rem;
+            margin-top: 3px;
+            min-height: 1.1em;
+            display: block;
+            font-weight: 500;
+        }
+        .light-mode .error-message {
+            color: #d9534f;
         }
 
-        /* ----- Action Button Styles ----- */
         .actions {
-            grid-column: 1 / -1;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 15px;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
         }
-
         .actions > div {
             display: flex;
             gap: 8px;
@@ -143,448 +201,957 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 0.9rem;
-            transition: background-color 0.3s;
+            font-weight: 500;
+            transition: background-color 0.3s, transform 0.1s, color 0.3s;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
         }
-
+        button:active {
+            transform: scale(0.97);
+        }
         button:hover {
-            background-color: #4cae4c;
-        }
-
-        .light-mode button {
-            background-color: #5cb85c;
-            color: #fff;
-        }
-
-        .light-mode button:hover {
-            background-color: #4cae4c;
+            background-color: #4a9d4a;
         }
 
         button.secondary {
             background-color: #6c757d;
+            color: #fff;
         }
-
         button.secondary:hover {
             background-color: #5a6268;
         }
 
+        button[disabled] {
+            background-color: #777;
+            color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        button[disabled]:hover {
+            background-color: #777;
+        }
+
+        .light-mode button:not(.secondary) {
+             color: #212529;
+        }
+        .light-mode button:hover {
+             background-color: #4a9d4a;
+        }
         .light-mode button.secondary {
             background-color: #6c757d;
             color: #fff;
         }
-
         .light-mode button.secondary:hover {
             background-color: #5a6268;
         }
-
-        button[disabled] {
+        .light-mode button[disabled] {
             background-color: #aaa;
-            cursor: not-allowed;
+            color: #eee;
         }
-
-        button[disabled]:hover {
+        .light-mode button[disabled]:hover {
             background-color: #aaa;
         }
 
-        /* ----- Results Section Styles ----- */
-        #results {
-            grid-column: 1 / -1;
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 7px;
-            background-color: #495057; /* Dark mode results background */
-            color: #fff; /* Dark mode results text color */
-            transition: background-color 0.3s, color 0.3s;
-            display: none; /* Hidden by default */
-            font-size: 0.85rem;
-            grid-template-columns: 1fr;
-            gap: 10px;
+        #results-content {
+             display: flex;
+             flex-direction: column;
+             gap: 12px;
         }
 
-        .light-mode #results {
-            background-color: #f8f9fa; /* Light mode results background */
-            color: #495057; /* Light mode results text color */
-            border: 1px solid #dee2e6;
-        }
-
-        #results h2 {
-            margin-top: 0;
-            color: #fff; /* Dark mode results heading color */
+        .results-panel h2 {
+            margin: 0 0 10px 0;
+            color: #fff;
             font-weight: 600;
-            margin-bottom: 10px;
-            font-size: 1rem;
-            transition: color 0.3s;
+            font-size: 1.15rem;
+            border-bottom: 1px solid #6c757d;
+            padding-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .light-mode .results-panel h2 {
+            color: #343a40;
+            border-bottom-color: #ced4da;
         }
 
-        .light-mode #results h2 {
-            color: #343a40; /* Light mode results heading color */
+        .chart-and-numbers {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+        #carbonChartContainer {
+            flex: 0 0 200px;
+            width: 200px;
+            height: 200px;
+            position: relative;
+            margin: 0 auto;
+        }
+        .numerical-breakdown {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
 
-        #results p {
-            margin-bottom: 6px;
-            line-height: 1.4;
+        #results-content p {
+            margin: 0;
+            line-height: 1.5;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
         }
 
-        #results strong {
-            color: #5bc0de;
+        .light-mode #results-content p {
+             color: #212529;
+        }
+
+        #results-content p .fas,
+        #results-content p .fa {
+            color: #8892b0;
+            min-width: 16px;
+            text-align: center;
+            font-size: 1em;
+        }
+        .light-mode #results-content p .fas,
+        .light-mode #results-content p .fa {
+            color: #6c757d;
+        }
+
+        #results-content strong {
+            color: #a6d1ff;
             font-weight: 600;
-            transition: color 0.3s;
+        }
+        .light-mode #results-content strong {
+            color: #0056b3;
         }
 
-        .light-mode #results strong {
-            color: #007bff;
+        p.total-footprint-line strong {
+            font-size: 1.1em;
+            color: #87ceeb;
+        }
+        .light-mode p.total-footprint-line strong {
+             color: #0056b3;
         }
 
-        #results hr {
+        #results-content hr {
             border: none;
-            border-top: 1px solid #6c757d;
+            border-top: 1px dashed #6c757d;
             margin: 10px 0;
         }
-
-        .light-mode #results hr {
-            border-top: 1px solid #ced4da;
+        .light-mode #results-content hr {
+            border-top-color: #ced4da;
         }
 
-        /* ----- Suggestions Section Styles ----- */
+        .comparison-text {
+            font-size: 0.8rem;
+            font-style: italic;
+            color: #adb5bd;
+            line-height: 1.4;
+        }
+        .light-mode .comparison-text {
+            color: #6c757d;
+        }
+        .comparison-text .fas {
+            font-size: 0.9em !important;
+            margin-right: 2px;
+        }
+        .comparison-text .fa-arrow-up { color: #f08080; }
+        .comparison-text .fa-arrow-down { color: #90ee90; }
+        .comparison-text .fa-equals { color: #a0a0a0; }
+
         #suggestions {
-            margin-top: 12px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #6c757d;
+        }
+        .light-mode #suggestions {
+            border-top-color: #ced4da;
         }
 
         #suggestions h3 {
-            color: #fff; /* Dark mode suggestions heading color */
-            font-weight: 500;
-            margin-bottom: 6px;
-            font-size: 0.9rem;
-            transition: color 0.3s;
+            color: #fff;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-
         .light-mode #suggestions h3 {
-            color: #495057; /* Light mode suggestions heading color */
+            color: #343a40;
         }
 
-        #suggestions p {
-            margin-bottom: 5px;
-            line-height: 1.3;
-            font-size: 0.8rem;
-            color: #adb5bd; /* Dark mode suggestion text color */
-            transition: color 0.3s;
+        #suggestions ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        #suggestions li {
+            margin-bottom: 6px;
+            line-height: 1.4;
+            font-size: 0.85rem;
+            color: #adb5bd;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        #suggestions li .fas {
+            color: #8892b0;
+            margin-top: 3px;
+            min-width: 14px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        .light-mode #suggestions li {
+            color: #5a6268;
+        }
+        .light-mode #suggestions li .fas {
+            color: #6c757d;
         }
 
-        .light-mode #suggestions p {
-            color: #6c757d; /* Light mode suggestion text color */
+        #suggestions a {
+            color: #87ceeb;
+            text-decoration: none;
+            font-weight: 500;
+            border-bottom: 1px dotted #87ceeb;
+            transition: color 0.3s, border-color 0.3s;
+        }
+        #suggestions a:hover {
+            color: #a6d1ff;
+            border-bottom-style: solid;
+            text-decoration: none;
+        }
+        .light-mode #suggestions a {
+            color: #0056b3;
+            border-bottom-color: #0056b3;
+        }
+        .light-mode #suggestions a:hover {
+            color: #007bff;
         }
 
-        /* ----- Chart Container Styles ----- */
-        #carbonChartContainer {
-            width: 80%;
-            max-width: 400px;
-            margin: 0 auto;
+        .disclaimer {
+             text-align: center;
+             font-size: 0.7rem;
+             margin-top: 10px;
+             color: #9aa5b6;
+             font-style: italic;
+        }
+        .light-mode .disclaimer {
+             color: #6c757d;
+        }
+        .disclaimer .fas {
+             margin-right: 3px;
         }
 
-        .light-mode #carbonChartContainer {
-            /* Adjust background for light mode if needed */
+        @media (min-width: 500px) and (max-width: 991px){
+             .input-fields-grid {
+                 grid-template-columns: repeat(2, 1fr);
+             }
+             .input-fields-grid > .input-group:last-child:nth-child(odd) {
+                 grid-column: 1 / -1;
+             }
         }
 
-        /* ----- Mobile Layout Adjustments ----- */
-        @media (max-width: 400px) {
+        @media (min-width: 500px) {
+              .chart-and-numbers {
+                  flex-direction: row;
+                  align-items: flex-start;
+              }
+              #carbonChartContainer {
+                  margin: 0;
+              }
+        }
+
+        @media (min-width: 992px) {
+            .container {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+
+            .input-panel {
+                flex: 1;
+                max-width: 100%;
+                transition: flex 0.3s ease-in-out, max-width 0.3s ease-in-out;
+            }
+            .results-panel {
+                 flex-basis: 0;
+                 overflow: hidden;
+            }
+
+            .container.results-visible .input-panel {
+                flex: 0 0 45%;
+                max-width: 45%;
+            }
+            .container.results-visible .results-panel {
+                display: flex;
+                flex: 1;
+                border-left: 1px solid #50596a;
+                padding-left: 20px;
+                max-height: calc(100vh - 70px);
+                overflow-y: auto;
+                animation: fadeInResults 0.4s ease-out;
+            }
+            .light-mode .container.results-visible .results-panel {
+                border-left-color: #dee2e6;
+            }
+
+            .input-fields-grid {
+                 grid-template-columns: repeat(2, 1fr);
+            }
+            .input-fields-grid > .input-group:last-child:nth-child(odd) {
+                 grid-column: 1 / -1;
+            }
+        }
+
+        @keyframes fadeInResults {
+            from { opacity: 0; transform: translateX(10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @media (max-width: 991px) {
+            body {
+                overflow-y: auto;
+            }
+            .container {
+                max-height: none;
+                overflow: visible;
+                padding: 15px;
+                flex-direction: column !important;
+            }
+            .input-panel,
+            .results-panel {
+                 max-width: 100% !important;
+                 flex-basis: auto !important;
+                 overflow-y: visible;
+                 border-left: none !important;
+                 padding-left: 0 !important;
+            }
+            .container.results-visible .results-panel {
+                 display: flex;
+            }
             .actions {
                 flex-direction: column;
                 align-items: stretch;
-                gap: 8px;
             }
-
             .actions > div {
                 flex-direction: column;
                 align-items: stretch;
-                gap: 8px;
+                width: 100%;
+            }
+            button {
+                justify-content: center;
             }
         }
     </style>
 </head>
-<body class="dark-mode">
-    <div class="container dark-mode">
-        <h1><i class="fas fa-leaf"></i> Carbon Footprint</h1>
+<body>
+    <div class="container">
 
-        <div class="input-group">
-            <label for="milesDriven"><i class="fas fa-road"></i> Miles/Week:</label>
-            <input type="number" id="milesDriven" min="0" value="100" aria-label="Average Miles Driven per Week">
-        </div>
+        <div class="input-panel">
+            <h1><i class="fas fa-leaf"></i> Carbon Footprint Calc</h1>
 
-        <div class="input-group">
-            <label for="fuelEfficiency"><i class="fas fa-gas-pump"></i> MPG:</label>
-            <input type="number" id="fuelEfficiency" min="1" value="25" aria-label="Fuel Efficiency of your car (MPG)">
-        </div>
+             <div class="input-fields-grid">
+                 <div class="input-group">
+                     <label for="milesDriven"><i class="fas fa-road input-icon"></i> Miles/Week:</label>
+                     <input type="number" id="milesDriven" min="0" value="100" placeholder="e.g., 150" aria-label="Average Miles Driven per Week">
+                     <span class="error-message" id="milesDrivenError"></span>
+                 </div>
+                 <div class="input-group">
+                     <label for="fuelEfficiency"><i class="fas fa-gas-pump input-icon"></i> MPG:</label>
+                     <input type="number" id="fuelEfficiency" min="1" value="25" placeholder="e.g., 30" aria-label="Fuel Efficiency (MPG)">
+                     <span class="error-message" id="fuelEfficiencyError"></span>
+                 </div>
+                 <div class="input-group">
+                     <label for="electricityUsage"><i class="fas fa-bolt input-icon"></i> kWh/Month:</label>
+                     <input type="number" id="electricityUsage" min="0" value="300" placeholder="e.g., 900" aria-label="Monthly Electricity Usage (kWh)">
+                     <span class="error-message" id="electricityUsageError"></span>
+                 </div>
+                 <div class="input-group">
+                     <label for="meatConsumption"><i class="fas fa-utensils input-icon"></i> Meat/Week:</label>
+                     <select id="meatConsumption" aria-label="Weekly Meat Consumption">
+                         <option value="-1">Vegan/Veg</option>
+                         <option value="0">Very Low (1-2 servings)</option>
+                         <option value="1">Low (3-5 servings)</option>
+                         <option value="2" selected>Moderate (6-9 servings)</option>
+                         <option value="3">High (10+ servings)</option>
+                     </select>
+                     <span class="error-message" id="meatConsumptionError"></span>
+                 </div>
+                 <div class="input-group">
+                     <label for="flightHours"><i class="fas fa-plane input-icon"></i> Flight hrs/Year:</label>
+                     <input type="number" id="flightHours" min="0" value="0" placeholder="e.g., 20" aria-label="Total Annual Flight Hours">
+                     <span class="error-message" id="flightHoursError"></span>
+                 </div>
+             </div>
 
-        <div class="input-group">
-            <label for="electricityUsage"><i class="fas fa-bolt"></i> kWh/Month:</label>
-            <input type="number" id="electricityUsage" min="0" value="300" aria-label="Monthly Electricity Usage in kWh">
-        </div>
-
-        <div class="input-group">
-            <label for="meatConsumption"><i class="fas fa-utensils"></i> Meat:</label>
-            <select id="meatConsumption" aria-label="Weekly Meat Consumption">
-                <option value="-1">None</option>
-                <option value="0">Very Low</option>
-                <option value="1">Low</option>
-                <option value="2" selected>Moderate</option>
-                <option value="3">High</option>
-            </select>
-        </div>
-
-        <div class="actions">
-            <button id="calculateBtn" aria-label="Calculate Carbon Footprint">
-                <i class="fas fa-calculator"></i> Calculate
-            </button>
-            <div>
-                <button id="resetBtn" class="secondary" aria-label="Reset Form">
-                    <i class="fas fa-undo"></i> Reset
+            <div class="actions">
+                <button id="calculateBtn" aria-label="Calculate Carbon Footprint">
+                    <i class="fas fa-calculator"></i> Calculate
                 </button>
-                <button id="themeToggleBtn" class="secondary" aria-label="Toggle Dark Mode">
-                    <i class="fas fa-sun"></i> <span id="darkModeText">Light Mode</span>
-                </button>
+                <div>
+                    <button id="resetBtn" class="secondary" aria-label="Reset Form">
+                        <i class="fas fa-undo"></i> Reset
+                    </button>
+                    <button id="themeToggleBtn" class="secondary" aria-label="Toggle Theme">
+                        <i class="fas fa-sun"></i> <span id="themeModeText">Light</span>
+                    </button>
+                </div>
             </div>
+
+             <p class="disclaimer">
+                 <i class="fas fa-info-circle"></i> Simplified estimates. Flight impact varies. Other lifestyle factors exist.
+             </p>
         </div>
 
-        <div id="results" role="region" aria-live="polite">
-            <h2><i class="fas fa-chart-bar"></i> Footprint Analysis</h2>
-            <div id="carbonChartContainer">
-                <canvas id="carbonChart" aria-label="Carbon Footprint Breakdown Chart"></canvas>
-            </div>
-            <p id="transportationFootprint"><i class="fas fa-car"></i> Transport: <span id="transportationValue"></span> kg CO2e/wk</p>
-            <p id="energyFootprint"><i class="fas fa-home"></i> Home: <span id="energyValue"></span> kg CO2e/month</p>
-            <p id="dietFootprint"><i class="fas fa-carrot"></i> Diet: <span id="dietValue"></span> kg CO2e/wk</p>
-            <hr>
-            <p><strong>Total: <span id="totalFootprint"></span> kg CO2e/wk</strong></p>
-            <p><small><i class="fas fa-info-circle"></i> Estimates.</small></p>
-            <p><i class="fas fa-tree"></i> Offset by ~<span id="treesRequired"></span> trees/year.</p>
-            <div id="suggestions"></div>
+        <div class="results-panel" id="resultsPanel" role="region" aria-live="polite">
+            <div id="results-content">
+                 <h2><i class="fas fa-chart-pie"></i> Estimated Footprint</h2>
+                 <p class="comparison-text" id="previousComparison"></p>
+
+                 <div class="chart-and-numbers">
+                     <div id="carbonChartContainer">
+                         <canvas id="carbonChart" aria-label="Carbon Footprint Breakdown Chart"></canvas>
+                     </div>
+                     <div class="numerical-breakdown">
+                         <p><i class="fas fa-car"></i> Driving: <strong><span id="transportationValue">0.0</span></strong> kg/wk</p>
+                         <p><i class="fas fa-home"></i> Energy: <strong><span id="energyValue">0.0</span></strong> kg/wk</p>
+                         <p><i class="fas fa-carrot"></i> Diet: <strong><span id="dietValue">0.0</span></strong> kg/wk</p>
+                         <p><i class="fas fa-plane-departure"></i> Flights: <strong><span id="flightValue">0.0</span></strong> kg/wk</p>
+                         <hr>
+                         <p class="total-footprint-line"><i class="fas fa-globe"></i> Total: <strong><span id="totalFootprint">0.0</span> kg/wk</strong></p>
+                         <p><i class="fas fa-tree"></i> Offset: ~<strong><span id="treesRequired">0</span></strong> trees/yr</p>
+                     </div>
+                 </div>
+
+                 <p class="comparison-text" id="averageComparison"></p>
+                 <p class="comparison-text" id="goalComparison"></p>
+
+                 <div id="suggestions">
+                 </div>
+             </div>
         </div>
+
     </div>
 
     <script>
-        // ----- Constants -----
-        const GAS_EMISSION_FACTOR = 8.887; // kg CO2e per gallon of gasoline
-        const ELECTRICITY_EMISSION_FACTOR = 0.5; // kg CO2e per kWh
-        const TREES_ABSORPTION_RATE = 22; // kg CO2e absorbed per tree per year
+        const GAS_EMISSION_FACTOR_KG_PER_GALLON = 8.887;
+        const ELECTRICITY_EMISSION_FACTOR_US_AVG_KG_PER_KWH = 0.37;
+        const FLIGHT_EMISSION_FACTOR_KG_PER_HOUR = 90;
+        const TREES_ABSORPTION_RATE_KG_PER_YEAR = 22;
+        const WEEKS_PER_YEAR = 52.14;
+        const MONTHS_PER_YEAR = 12;
+        const AVG_US_ANNUAL_FOOTPRINT_KG = 15500;
+        const SUSTAINABILITY_TARGET_ANNUAL_KG = 5000;
+        const MIN_CHART_PERCENTAGE_TO_DISPLAY = 5;
+        const LOCAL_STORAGE_KEYS = {
+            THEME: 'themePreference',
+            LAST_FOOTPRINT: 'lastCarbonFootprint'
+        };
 
-        // ----- DOM Element References -----
         const el = {
             body: document.body,
             container: document.querySelector('.container'),
+            inputPanel: document.querySelector('.input-panel'),
+            resultsPanel: document.getElementById('resultsPanel'),
             milesDrivenInput: document.getElementById('milesDriven'),
             fuelEfficiencyInput: document.getElementById('fuelEfficiency'),
             electricityUsageInput: document.getElementById('electricityUsage'),
             meatConsumptionSelect: document.getElementById('meatConsumption'),
+            flightHoursInput: document.getElementById('flightHours'),
             calculateButton: document.getElementById('calculateBtn'),
             resetButton: document.getElementById('resetBtn'),
             themeToggleButton: document.getElementById('themeToggleBtn'),
-            darkModeTextSpan: document.getElementById('darkModeText'),
-            resultsDiv: document.getElementById('results'),
+            themeModeTextSpan: document.getElementById('themeModeText'),
+            milesDrivenError: document.getElementById('milesDrivenError'),
+            fuelEfficiencyError: document.getElementById('fuelEfficiencyError'),
+            electricityUsageError: document.getElementById('electricityUsageError'),
+            meatConsumptionError: document.getElementById('meatConsumptionError'),
+            flightHoursError: document.getElementById('flightHoursError'),
             transportationValueSpan: document.getElementById('transportationValue'),
             energyValueSpan: document.getElementById('energyValue'),
             dietValueSpan: document.getElementById('dietValue'),
+            flightValueSpan: document.getElementById('flightValue'),
             totalFootprintSpan: document.getElementById('totalFootprint'),
             treesRequiredSpan: document.getElementById('treesRequired'),
+            previousComparisonP: document.getElementById('previousComparison'),
+            averageComparisonP: document.getElementById('averageComparison'),
+            goalComparisonP: document.getElementById('goalComparison'),
             suggestionsDiv: document.getElementById('suggestions'),
             chartCanvas: document.getElementById('carbonChart'),
+            chartContainer: document.getElementById('carbonChartContainer'),
             chartInstance: null,
         };
 
-        // ----- Validation Functions -----
+
+        const resetErrorStates = () => {
+            const inputs = [el.milesDrivenInput, el.fuelEfficiencyInput, el.electricityUsageInput, el.flightHoursInput];
+            const errorSpans = [el.milesDrivenError, el.fuelEfficiencyError, el.electricityUsageError, el.flightHoursError, el.meatConsumptionError];
+
+            inputs.forEach(input => input.classList.remove('error'));
+            errorSpans.forEach(span => { if (span) span.textContent = ''; });
+        };
+
         const validateInputs = () => {
             resetErrorStates();
             let isValid = true;
-            if (parseFloat(el.milesDrivenInput.value) < 0) {
-                el.milesDrivenInput.classList.add('error');
-                isValid = false;
-            }
-            if (parseFloat(el.fuelEfficiencyInput.value) <= 0) {
-                el.fuelEfficiencyInput.classList.add('error');
-                isValid = false;
-            }
-            if (parseFloat(el.electricityUsageInput.value) < 0) {
-                el.electricityUsageInput.classList.add('error');
-                isValid = false;
-            }
+
+            const validateField = (input, errorEl, minValue, errorMessage) => {
+                const value = parseFloat(input.value);
+                if (isNaN(value) || value < minValue) {
+                    input.classList.add('error');
+                    if (errorEl) errorEl.textContent = errorMessage;
+                    return false;
+                }
+                return true;
+            };
+
+            if (!validateField(el.milesDrivenInput, el.milesDrivenError, 0, 'Must be 0 or greater.')) isValid = false;
+            if (!validateField(el.fuelEfficiencyInput, el.fuelEfficiencyError, 1, 'Must be greater than 0.')) isValid = false;
+            if (!validateField(el.electricityUsageInput, el.electricityUsageError, 0, 'Must be 0 or greater.')) isValid = false;
+            if (!validateField(el.flightHoursInput, el.flightHoursError, 0, 'Must be 0 or greater.')) isValid = false;
+
             return isValid;
         };
 
-        const resetErrorStates = () => {
-            el.milesDrivenInput.classList.remove('error');
-            el.fuelEfficiencyInput.classList.remove('error');
-            el.electricityUsageInput.classList.remove('error');
+
+        const calculateTransportationFootprint = (milesPerWeek, mpg) => {
+            if (mpg <= 0) return 0;
+            const gallonsPerWeek = milesPerWeek / mpg;
+            return gallonsPerWeek * GAS_EMISSION_FACTOR_KG_PER_GALLON;
         };
 
-        // ----- Calculation Functions -----
-        const calculateTransportationFootprint = (miles, mpg) => (miles / mpg) * GAS_EMISSION_FACTOR;
-        const calculateEnergyFootprint = (kwh) => kwh * ELECTRICITY_EMISSION_FACTOR;
-        const calculateDietFootprint = (meatLevel) => {
-            const meatFactors = {
-                '-1': 0,
-                '0': 10,
-                '1': 25,
-                '2': 50,
-                '3': 75,
+        const calculateEnergyFootprint = (kwhPerMonth) => {
+            const kwhPerWeek = kwhPerMonth * (MONTHS_PER_YEAR / WEEKS_PER_YEAR);
+            return kwhPerWeek * ELECTRICITY_EMISSION_FACTOR_US_AVG_KG_PER_KWH;
+        };
+
+        const calculateDietFootprint = (meatLevelString) => {
+            const dietFactors = {
+                '-1': 5,
+                '0': 15,
+                '1': 30,
+                '2': 55,
+                '3': 80
             };
-            return meatFactors[meatLevel] || 50; // Default to moderate if invalid
-        };
-        const calculateTotalFootprint = (transport, energy, diet) => transport + (energy / 4) + diet; // Energy converted to weekly
-        const calculateTreesToOffset = (total) => (total * 52) / TREES_ABSORPTION_RATE;
-
-        // ----- Display Functions -----
-        const displayCalculationResults = (transport, energy, diet, total, trees) => {
-            el.transportationValueSpan.textContent = transport.toFixed(1);
-            el.energyValueSpan.textContent = energy.toFixed(1);
-            el.dietValueSpan.textContent = diet.toFixed(1);
-            el.totalFootprintSpan.innerHTML = `<strong>${total.toFixed(1)}</strong>`;
-            el.treesRequiredSpan.textContent = trees.toFixed(0);
-            el.resultsDiv.style.display = 'grid';
-            updateCarbonChart(transport, energy / 4, diet); // Energy converted to weekly for chart
+            return dietFactors[meatLevelString] || 55;
         };
 
-        const updateCarbonChart = (transportation, energy, diet) => {
+        const calculateFlightFootprint = (hoursPerYear) => {
+            if (hoursPerYear <= 0) return 0;
+            const totalFlightEmissions = hoursPerYear * FLIGHT_EMISSION_FACTOR_KG_PER_HOUR;
+            return totalFlightEmissions / WEEKS_PER_YEAR;
+        };
+
+        const calculateTotalWeeklyFootprint = (transportWk, energyWk, dietWk, flightsWk) => {
+            return transportWk + energyWk + dietWk + flightsWk;
+        };
+
+        const calculateTreesToOffset = (totalWeeklyFootprint) => {
+            if (totalWeeklyFootprint <= 0) return 0;
+            const annualFootprint = totalWeeklyFootprint * WEEKS_PER_YEAR;
+            return Math.ceil(annualFootprint / TREES_ABSORPTION_RATE_KG_PER_YEAR);
+        };
+
+
+        const displayCalculationResults = (data) => {
+            const { transportWk, energyWk, dietWk, flightsWk, totalWk, treesYr, annualTotal } = data;
+
+            el.transportationValueSpan.textContent = transportWk.toFixed(1);
+            el.energyValueSpan.textContent = energyWk.toFixed(1);
+            el.dietValueSpan.textContent = dietWk.toFixed(1);
+            el.flightValueSpan.textContent = flightsWk.toFixed(1);
+            el.totalFootprintSpan.textContent = totalWk.toFixed(1);
+            el.treesRequiredSpan.textContent = treesYr.toLocaleString();
+
+            displayLocalStorageComparison(totalWk);
+            displayAverageComparison(annualTotal);
+            displayGoalComparison(annualTotal);
+
+            updateCarbonChart(transportWk, energyWk, dietWk, flightsWk);
+
+            updateSuggestions(data);
+
+            el.container.classList.add('results-visible');
+
+             if (window.innerWidth < 992) {
+                  setTimeout(() => {
+                       el.resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  }, 50);
+             }
+        };
+
+        const displayLocalStorageComparison = (currentTotalWk) => {
+            el.previousComparisonP.innerHTML = '';
+            try {
+                const lastDataRaw = localStorage.getItem(LOCAL_STORAGE_KEYS.LAST_FOOTPRINT);
+                if (lastDataRaw) {
+                    const lastData = JSON.parse(lastDataRaw);
+                    const lastTotalWk = parseFloat(lastData.totalWk);
+                    const calcDate = new Date(lastData.date).toLocaleDateString();
+
+                    if (!isNaN(lastTotalWk)) {
+                        const difference = currentTotalWk - lastTotalWk;
+                        let iconClass = 'fa-equals';
+                        let comparisonText = `Similar to calculation on ${calcDate}.`;
+
+                        if (Math.abs(difference) >= 0.1) {
+                             if (difference < 0) {
+                                 comparisonText = `<strong>${Math.abs(difference).toFixed(1)} kg lower</strong>/wk vs ${calcDate}.`;
+                                 iconClass = 'fa-arrow-down';
+                             } else {
+                                 comparisonText = `<strong>${difference.toFixed(1)} kg higher</strong>/wk vs ${calcDate}.`;
+                                 iconClass = 'fa-arrow-up';
+                             }
+                        }
+                        el.previousComparisonP.innerHTML = `<i class="fas ${iconClass}"></i> ${comparisonText}`;
+                    } else {
+                        localStorage.removeItem(LOCAL_STORAGE_KEYS.LAST_FOOTPRINT);
+                    }
+                }
+            } catch (e) {
+                console.error("Error reading or parsing last footprint data from localStorage:", e);
+                localStorage.removeItem(LOCAL_STORAGE_KEYS.LAST_FOOTPRINT);
+            }
+         };
+
+         const formatNumber = (num) => num.toLocaleString(undefined, { maximumFractionDigits: 0 });
+
+        const displayAverageComparison = (annualTotal) => {
+             const difference = annualTotal - AVG_US_ANNUAL_FOOTPRINT_KG;
+             let comparisonText = `Annual: <strong>${formatNumber(annualTotal)} kg</strong>. `;
+             const significantDifference = 50;
+
+             if (difference < -significantDifference) {
+                  comparisonText += `(~<strong>${formatNumber(Math.abs(difference))} kg below</strong> US avg of ${formatNumber(AVG_US_ANNUAL_FOOTPRINT_KG)} kg).`;
+             } else if (difference > significantDifference) {
+                  comparisonText += `(~<strong>${formatNumber(difference)} kg above</strong> US avg of ${formatNumber(AVG_US_ANNUAL_FOOTPRINT_KG)} kg).`;
+             } else {
+                  comparisonText += `(Similar to US avg of ${formatNumber(AVG_US_ANNUAL_FOOTPRINT_KG)} kg).`;
+             }
+             el.averageComparisonP.innerHTML = `<i class="fas fa-users"></i> ${comparisonText}`;
+         };
+
+        const displayGoalComparison = (annualTotal) => {
+            const difference = annualTotal - SUSTAINABILITY_TARGET_ANNUAL_KG;
+            let comparisonText = '';
+             if (difference <= 0) {
+                  comparisonText = `Below target of <strong>${formatNumber(SUSTAINABILITY_TARGET_ANNUAL_KG)} kg/yr</strong>. Well done!`;
+             } else {
+                  comparisonText = `~<strong>${formatNumber(difference)} kg/yr above</strong> sustainability target of ${formatNumber(SUSTAINABILITY_TARGET_ANNUAL_KG)} kg.`;
+             }
+             el.goalComparisonP.innerHTML = `<i class="fas fa-bullseye"></i> ${comparisonText}`;
+         };
+
+        const updateCarbonChart = (transportation, energy, diet, flights) => {
             if (el.chartInstance) {
                 el.chartInstance.destroy();
             }
 
             const isLightMode = el.body.classList.contains('light-mode');
-            const textColor = isLightMode ? '#495057' : '#fff';
-            const chartLabels = ['Transportation', 'Home Energy'];
-            const chartData = [transportation, energy];
+            const chartTextColor = isLightMode ? '#40495a' : '#e0e6ed';
+            const chartBorderColor = isLightMode ? '#ffffff' : '#343a40';
+            const tooltipBgColor = isLightMode ? 'rgba(0,0,0,0.75)' : 'rgba(255,255,255,0.85)';
+            const tooltipTextColor = isLightMode ? '#ffffff' : '#000000';
 
-            if (diet > 0) {
-                chartLabels.push('Diet');
-                chartData.push(diet);
-            }
+            const chartDataValues = [transportation, energy, diet, flights].map(v => Math.max(v, 0.01));
+            const chartLabels = ['Driving', 'Energy', 'Diet', 'Flights'];
+            const backgroundColors = ['#5cb85c', '#5bc0de', '#f0ad4e', '#d9534f'];
+            const total = chartDataValues.reduce((sum, value) => sum + value, 0);
 
-            el.chartInstance = new Chart(el.chartCanvas, {
-                type: 'pie',
+            const chartConfig = {
+                type: 'doughnut',
                 data: {
                     labels: chartLabels,
                     datasets: [{
-                        data: chartData,
-                        backgroundColor: ['#5cb85c', '#5bc0de', '#f0ad4e'],
+                        data: chartDataValues,
+                        backgroundColor: backgroundColors,
+                        borderColor: chartBorderColor,
+                        borderWidth: 1.5,
+                        hoverOffset: 4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    cutout: '65%',
+                    layout: {
+                        padding: 5
+                    },
                     plugins: {
                         legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: textColor
-                            }
+                            display: false
                         },
                         title: {
-                            display: true,
-                            text: 'Footprint Contribution (Weekly kg CO2e)',
-                            color: textColor
+                            display: false
                         },
+                        tooltip: {
+                            backgroundColor: tooltipBgColor,
+                            titleColor: tooltipTextColor,
+                            bodyColor: tooltipTextColor,
+                            bodyFont: { size: 11 },
+                            padding: 8,
+                            callbacks: {
+                                label: (context) => {
+                                    let label = context.label || '';
+                                    if (label) { label += ': '; }
+                                    const value = context.parsed;
+                                    if (value !== null) {
+                                        label += value.toFixed(1) + ' kg';
+                                        if (total > 0.1) {
+                                            const percentage = ((value / total) * 100).toFixed(0);
+                                            label += ` (${percentage}%)`;
+                                        }
+                                    }
+                                    return label;
+                                }
+                            }
+                         },
                         datalabels: {
-                            color: textColor,
                             formatter: (value, context) => {
-                                const sum = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                                const percentage = ((value / sum) * 100).toFixed(1) + "%";
-                                return percentage;
+                                if (total < 0.1) return '';
+                                const percentage = (value / total) * 100;
+                                return percentage > MIN_CHART_PERCENTAGE_TO_DISPLAY ? percentage.toFixed(0) + "%" : '';
+                            },
+                            color: (context) => {
+                               const bgColor = context.dataset.backgroundColor[context.dataIndex];
+                               const r = parseInt(bgColor.slice(1, 3), 16);
+                               const g = parseInt(bgColor.slice(3, 5), 16);
+                               const b = parseInt(bgColor.slice(5, 7), 16);
+                               const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+                               return luminance > 0.5 ? '#000000' : '#ffffff';
                             },
                             font: {
-                                weight: 'bold'
-                            }
+                                weight: 'bold',
+                                size: 10
+                            },
                         }
                     }
                 },
                 plugins: [ChartDataLabels]
-            });
+            };
+
+            el.chartInstance = new Chart(el.chartCanvas, chartConfig);
         };
 
-        const updateSuggestions = (transport, energy, diet, total) => {
-            el.suggestionsDiv.innerHTML = "<h3><i class='fas fa-lightbulb'></i> Ways to Reduce:</h3>";
-            const oneThirdOfTotal = total / 3;
-            const annualEnergyFootprint = energy * 52 / 12; // Approximate annual energy footprint
+        const updateSuggestions = (data) => {
+             const { transportWk, energyWk, dietWk, flightsWk, totalWk } = data;
+             el.suggestionsDiv.innerHTML = "<h3><i class='fas fa-lightbulb'></i> Top Suggestions:</h3>";
+             const suggestionsList = document.createElement('ul');
 
-            if (diet === 0) {
-                el.suggestionsDiv.innerHTML += "<p><i class='fas fa-chevron-right'></i> Excellent job with a plant-based diet!</p>";
-            } else {
-                if (transport > oneThirdOfTotal) {
-                    el.suggestionsDiv.innerHTML += "<p><i class='fas fa-chevron-right'></i> Consider public transportation or cycling.</p>";
-                }
-                if (annualEnergyFootprint > oneThirdOfTotal) {
-                    el.suggestionsDiv.innerHTML += "<p><i class='fas fa-chevron-right'></i> Switch to energy-efficient appliances.</p>";
-                }
-                if (diet > oneThirdOfTotal) {
-                    el.suggestionsDiv.innerHTML += "<p><i class='fas fa-chevron-right'></i> Reduce your meat consumption.</p>";
-                }
-            }
-        };
+             const potentialSuggestions = [
+                 {
+                   name: 'transport',
+                   value: transportWk,
+                   threshold: Math.max(totalWk * 0.20, 5),
+                   condition: () => transportWk > 1,
+                   getText: () => {
+                       const mpg = parseFloat(el.fuelEfficiencyInput.value);
+                       if (mpg < 28) {
+                           return `Consider improving fuel efficiency (<a href="https://www.fueleconomy.gov/feg/maintain.jsp" target="_blank" rel="noopener noreferrer">Maintenance Tips</a>) or driving less.`;
+                       } else {
+                           return `Explore ways to reduce weekly driving (<a href="https://www.epa.gov/transportation-air-pollution-and-climate-change/what-you-can-do-reduce-pollution-vehicles-and" target="_blank" rel="noopener noreferrer">Alternatives</a>).`;
+                       }
+                   }
+                 },
+                 {
+                   name: 'energy',
+                   value: energyWk,
+                   threshold: Math.max(totalWk * 0.20, 5),
+                   condition: () => energyWk > 1,
+                   getText: () => `Reduce home energy use (<a href="https://www.energystar.gov/saveathome" target="_blank" rel="noopener noreferrer">EnergyStar Tips</a>).`
+                 },
+                 {
+                   name: 'diet',
+                   value: dietWk,
+                   threshold: Math.max(totalWk * 0.15, 3),
+                   condition: () => el.meatConsumptionSelect.value !== "-1",
+                   getText: () => `Try reducing meat consumption (<a href="https://www.eatingwell.com/recipes/17988/vegetarian/" target="_blank" rel="noopener noreferrer">Plant-Based Recipes</a>).`
+                 },
+                 {
+                   name: 'flights',
+                   value: flightsWk,
+                   threshold: Math.max(totalWk * 0.15, 3),
+                   condition: () => flightsWk > 0.1,
+                   getText: () => `Minimize air travel when possible or consider offsetting flights (<a href="https://www.epa.gov/climateleadership/offsetting-ghg-emissions" target="_blank" rel="noopener noreferrer">Offset Info</a>).`
+                 }
+             ];
 
-        // ----- Event Handlers -----
+             const validSuggestions = potentialSuggestions
+                 .filter(item => item.condition() && item.value >= item.threshold && item.getText() !== null)
+                 .sort((a, b) => b.value - a.value);
+
+             let suggestionsCount = 0;
+             const maxSuggestionsToShow = 2;
+
+             validSuggestions.forEach(item => {
+                 if (suggestionsCount >= maxSuggestionsToShow) return;
+                 let li = document.createElement('li');
+                 li.innerHTML = `<i class="fas fa-chevron-right"></i> ${item.getText()}`;
+                 suggestionsList.appendChild(li);
+                 suggestionsCount++;
+             });
+
+             if (suggestionsList.children.length === 0) {
+                  let li = document.createElement('li');
+                  if (totalWk > 1) {
+                      li.innerHTML = `<i class="fas fa-check-circle"></i> Footprint low in major categories. Consider broader lifestyle choices for further reduction.`;
+                  } else {
+                      li.innerHTML = `<i class="fas fa-leaf"></i> Your estimated footprint seems very low! Keep up the great work.`;
+                  }
+                  suggestionsList.appendChild(li);
+             }
+
+             el.suggestionsDiv.appendChild(suggestionsList);
+         };
+
+
         const handleCalculateClick = () => {
             if (!validateInputs()) {
-                alert("Please correct the invalid inputs.");
                 return;
             }
 
-            const milesDriven = parseFloat(el.milesDrivenInput.value);
-            const fuelEfficiency = parseFloat(el.fuelEfficiencyInput.value);
-            const electricityUsage = parseFloat(el.electricityUsageInput.value);
-            const meatConsumptionLevel = el.meatConsumptionSelect.value;
+            const miles = parseFloat(el.milesDrivenInput.value);
+            const mpg = parseFloat(el.fuelEfficiencyInput.value);
+            const kwh = parseFloat(el.electricityUsageInput.value);
+            const meatLevel = el.meatConsumptionSelect.value;
+            const flightHours = parseFloat(el.flightHoursInput.value);
 
             el.calculateButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculating...';
             el.calculateButton.disabled = true;
 
             setTimeout(() => {
-                const transportationFootprint = calculateTransportationFootprint(milesDriven, fuelEfficiency);
-                const energyFootprint = calculateEnergyFootprint(electricityUsage);
-                const dietFootprint = calculateDietFootprint(meatConsumptionLevel);
-                const totalFootprint = calculateTotalFootprint(transportationFootprint, energyFootprint, dietFootprint);
-                const treesNeeded = calculateTreesToOffset(totalFootprint);
+                const transportWk = calculateTransportationFootprint(miles, mpg);
+                const energyWk = calculateEnergyFootprint(kwh);
+                const dietWk = calculateDietFootprint(meatLevel);
+                const flightsWk = calculateFlightFootprint(flightHours);
+                const totalWk = calculateTotalWeeklyFootprint(transportWk, energyWk, dietWk, flightsWk);
+                const annualTotal = totalWk * WEEKS_PER_YEAR;
+                const treesYr = calculateTreesToOffset(totalWk);
 
-                displayCalculationResults(transportationFootprint, energyFootprint, dietFootprint, totalFootprint, treesNeeded);
-                updateSuggestions(transportationFootprint, energyFootprint, dietFootprint, totalFootprint);
+                const resultsData = { transportWk, energyWk, dietWk, flightsWk, totalWk, treesYr, annualTotal };
 
-                el.calculateButton.innerHTML = '<i class="fas fa-check"></i> Calculated!';
+                displayCalculationResults(resultsData);
+
+                const saveData = {
+                    totalWk: totalWk.toFixed(1),
+                    date: new Date().toISOString()
+                };
+                try {
+                    localStorage.setItem(LOCAL_STORAGE_KEYS.LAST_FOOTPRINT, JSON.stringify(saveData));
+                } catch (e) {
+                    console.warn("Could not save calculation result to localStorage:", e);
+                }
+
+                el.calculateButton.innerHTML = '<i class="fas fa-check"></i> Done!';
                 setTimeout(() => {
                     el.calculateButton.innerHTML = '<i class="fas fa-calculator"></i> Calculate';
                     el.calculateButton.disabled = false;
                 }, 1500);
-            }, 1000);
+
+            }, 150);
         };
 
         const handleResetClick = () => {
             el.milesDrivenInput.value = 100;
             el.fuelEfficiencyInput.value = 25;
             el.electricityUsageInput.value = 300;
-            el.meatConsumptionSelect.value = '-1';
-            el.resultsDiv.style.display = 'none';
+            el.meatConsumptionSelect.value = '2';
+            el.flightHoursInput.value = 0;
+
             resetErrorStates();
+
+            el.container.classList.remove('results-visible');
+
+            el.previousComparisonP.innerHTML = '';
+            el.averageComparisonP.innerHTML = '';
+            el.goalComparisonP.innerHTML = '';
+
             if (el.chartInstance) {
                 el.chartInstance.destroy();
                 el.chartInstance = null;
             }
+            el.suggestionsDiv.innerHTML = '';
+
+            const resultSpans = [el.transportationValueSpan, el.energyValueSpan, el.dietValueSpan, el.flightValueSpan, el.totalFootprintSpan, el.treesRequiredSpan];
+            resultSpans.forEach(span => { span.textContent = '0.0'; });
+
+             if (window.innerWidth < 992) {
+                  el.inputPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+             }
         };
 
         const handleThemeToggleClick = () => {
-            el.body.classList.toggle('light-mode');
-            el.container.classList.toggle('light-mode');
-            const isLightMode = el.body.classList.contains('light-mode');
-            el.darkModeTextSpan.textContent = isLightMode ? 'Dark Mode' : 'Light Mode';
-            el.themeToggleButton.innerHTML = isLightMode ? '<i class="fas fa-moon"></i> Dark Mode' : '<i class="fas fa-sun"></i> Light Mode';
-            if (el.chartInstance && el.resultsDiv.style.display === 'grid') {
-                updateCarbonChart(
-                    parseFloat(el.transportationValueSpan.textContent),
-                    parseFloat(el.energyValueSpan.textContent) / 4,
-                    parseFloat(el.dietValueSpan.textContent)
-                );
+            const isNowLight = el.body.classList.toggle('light-mode');
+            el.container.classList.toggle('light-mode', isNowLight);
+
+            const iconClass = isNowLight ? 'fa-moon' : 'fa-sun';
+            const modeText = isNowLight ? 'Dark' : 'Light';
+            el.themeToggleButton.innerHTML = `<i class="fas ${iconClass}"></i> <span id="themeModeText">${modeText}</span>`;
+
+            if (el.chartInstance && el.container.classList.contains('results-visible')) {
+                 try {
+                     const t = parseFloat(el.transportationValueSpan.textContent) || 0;
+                     const e = parseFloat(el.energyValueSpan.textContent) || 0;
+                     const d = parseFloat(el.dietValueSpan.textContent) || 0;
+                     const f = parseFloat(el.flightValueSpan.textContent) || 0;
+                     if (![t, e, d, f].some(isNaN)) {
+                         updateCarbonChart(t, e, d, f);
+                     }
+                 } catch (err) {
+                     console.error("Error retrieving values or redrawing chart on theme toggle:", err);
+                 }
+            }
+
+            try {
+                localStorage.setItem(LOCAL_STORAGE_KEYS.THEME, isNowLight ? 'light' : 'dark');
+            } catch (e) {
+                console.warn("Could not save theme preference to localStorage:", e);
             }
         };
 
-        // ----- Event Listeners -----
+        const initializeTheme = () => {
+             let preferredTheme = 'dark';
+             try {
+                 preferredTheme = localStorage.getItem(LOCAL_STORAGE_KEYS.THEME) || 'dark';
+             } catch (e) {
+                 console.warn("Could not read theme preference from localStorage:", e);
+             }
+
+             if (preferredTheme === 'light') {
+                 el.body.classList.add('light-mode');
+                 el.container.classList.add('light-mode');
+                 el.themeToggleButton.innerHTML = '<i class="fas fa-moon"></i> <span id="themeModeText">Dark</span>';
+             } else {
+                 el.body.classList.remove('light-mode');
+                 el.container.classList.remove('light-mode');
+                 el.themeToggleButton.innerHTML = '<i class="fas fa-sun"></i> <span id="themeModeText">Light</span>';
+             }
+         };
+
         el.calculateButton.addEventListener('click', handleCalculateClick);
         el.resetButton.addEventListener('click', handleResetClick);
         el.themeToggleButton.addEventListener('click', handleThemeToggleClick);
+
+        const inputsToClearOnError = [el.milesDrivenInput, el.fuelEfficiencyInput, el.electricityUsageInput, el.flightHoursInput];
+        inputsToClearOnError.forEach(input => {
+            input.addEventListener('input', () => {
+                if (input.classList.contains('error')) {
+                    input.classList.remove('error');
+                    const errorSpan = document.getElementById(input.id + 'Error');
+                    if (errorSpan) errorSpan.textContent = '';
+                }
+            });
+        });
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTheme();
+            Chart.register(ChartDataLabels);
+        });
+
     </script>
 </body>
 </html>
