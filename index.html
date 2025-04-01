@@ -18,16 +18,16 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            padding: 15px;
+            padding: 15px; /* Padding around the container */
             background-color: #2a303c;
             color: #e0e6ed;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* Align container to top on scroll */
             min-height: 100vh;
             font-size: 15px;
             transition: background-color 0.3s, color 0.3s;
-            overflow: hidden;
+            /* REMOVED overflow: hidden; - Allow body scroll if needed, esp. mobile */
         }
 
         .light-mode body {
@@ -43,11 +43,12 @@
             width: 100%;
             max-width: 1100px;
             display: flex;
-            flex-direction: column;
+            flex-direction: column; /* Default: Mobile first */
             gap: 20px;
             transition: background-color 0.3s, box-shadow 0.3s, max-width 0.3s ease-in-out;
-            max-height: calc(100vh - 30px);
-            overflow: hidden;
+            /* Max-height and overflow handled by media queries */
+            max-height: none; /* Let content determine height by default */
+            overflow: visible; /* Let content overflow by default */
         }
 
         .light-mode .container {
@@ -60,8 +61,11 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            overflow-y: auto;
+            /* Overflow handled by media queries or specific scenarios */
+            overflow-y: visible;
         }
+
+        /* Scrollbar styling (mostly for desktop view) */
         .input-panel::-webkit-scrollbar,
         .results-panel::-webkit-scrollbar { width: 6px; }
         .input-panel::-webkit-scrollbar-track,
@@ -70,10 +74,15 @@
         .results-panel::-webkit-scrollbar-thumb { background-color: #6c757d; border-radius: 3px; }
 
         @supports (scrollbar-color: auto) {
-          .light-mode .input-panel,
-          .light-mode .results-panel {
-             scrollbar-color: #adb5bd #e9ecef;
-          }
+            /* Firefox Scrollbar Styling */
+            .input-panel, .results-panel {
+                scrollbar-width: thin;
+                scrollbar-color: #6c757d #343a40;
+            }
+             .light-mode .input-panel,
+             .light-mode .results-panel {
+                scrollbar-color: #adb5bd #e9ecef;
+             }
         }
         .light-mode .input-panel::-webkit-scrollbar-track,
         .light-mode .results-panel::-webkit-scrollbar-track { background: #e9ecef; }
@@ -81,7 +90,7 @@
         .light-mode .results-panel::-webkit-scrollbar-thumb { background-color: #adb5bd; }
 
         .results-panel {
-            display: none;
+            display: none; /* Hide results initially */
         }
 
         h1 {
@@ -102,7 +111,7 @@
 
         .input-fields-grid {
              display: grid;
-             grid-template-columns: 1fr;
+             grid-template-columns: 1fr; /* Mobile default: 1 column */
              gap: 15px;
         }
 
@@ -182,15 +191,18 @@
 
         .actions {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
+            /* Default: stack vertically for mobile */
+            flex-direction: column;
+            align-items: stretch;
             gap: 8px;
             margin-top: 10px;
         }
+        /* Group reset/theme buttons together */
         .actions > div {
             display: flex;
+            flex-direction: column; /* Stack vertically mobile */
             gap: 8px;
+            width: 100%;
         }
 
         button {
@@ -205,7 +217,9 @@
             transition: background-color 0.3s, transform 0.1s, color 0.3s;
             display: flex;
             align-items: center;
+            justify-content: center; /* Center content */
             gap: 6px;
+            width: 100%; /* Full width on mobile stack */
         }
         button:active {
             transform: scale(0.97);
@@ -277,22 +291,27 @@
 
         .chart-and-numbers {
             display: flex;
-            flex-direction: column;
+            flex-direction: column; /* Stack mobile */
             gap: 15px;
             align-items: center;
         }
+
         #carbonChartContainer {
-            flex: 0 0 200px;
-            width: 200px;
-            height: 200px;
+            /* REMOVED flex: 0 0 ... */
+            width: 100%; /* Take available width */
+            max-width: 220px; /* Limit max size */
+            /* REMOVED height: 200px; */
+            aspect-ratio: 1 / 1; /* Maintain square shape */
             position: relative;
-            margin: 0 auto;
+            margin: 0 auto; /* Center in column layout */
         }
+
         .numerical-breakdown {
-            flex: 1;
+            flex: 1; /* Allow it to take space in row layout */
             display: flex;
             flex-direction: column;
             gap: 5px;
+            width: 100%; /* Ensure it takes width in column layout */
         }
 
         #results-content p {
@@ -446,16 +465,98 @@
              margin-right: 3px;
         }
 
-        @media (min-width: 500px) and (max-width: 991px){
+        /* ---- Media Queries for Responsiveness ---- */
+
+        /* Small Tablets and Larger Phones (e.g., > 550px) */
+        @media (min-width: 550px) {
              .input-fields-grid {
-                 grid-template-columns: repeat(2, 1fr);
+                 grid-template-columns: repeat(2, 1fr); /* 2 columns for inputs */
              }
+             /* Make last odd item span full width */
              .input-fields-grid > .input-group:last-child:nth-child(odd) {
                  grid-column: 1 / -1;
              }
+
+              .chart-and-numbers {
+                  flex-direction: row; /* Chart and numbers side-by-side */
+                  align-items: flex-start; /* Align items to top */
+                  gap: 20px; /* Add more gap */
+              }
+              #carbonChartContainer {
+                  margin: 0; /* Remove auto margin */
+                  /* Size already handled by max-width and aspect-ratio */
+              }
+              .numerical-breakdown {
+                  width: auto; /* Let flexbox handle width */
+              }
+
+             .actions {
+                flex-direction: row; /* Buttons side-by-side */
+                justify-content: space-between; /* Space out Calc vs Reset/Theme */
+                align-items: center;
+            }
+            .actions > button, /* Calculate button */
+            .actions > div {
+                flex-direction: row; /* Keep Reset/Theme side-by-side */
+                width: auto; /* Don't force full width */
+            }
+            button {
+                width: auto; /* Allow buttons to size naturally */
+            }
         }
 
-        @media (min-width: 500px) {
+        /* Desktop View (e.g., >= 992px) */
+        @media (min-width: 992px) {
+            body {
+                align-items: center; /* Center container vertically again */
+            }
+            .container {
+                flex-direction: row; /* Side-by-side panels */
+                align-items: flex-start; /* Align panels to top */
+                max-height: calc(100vh - 30px); /* Limit height */
+                overflow: hidden; /* Prevent container overflow */
+            }
+
+            .input-panel {
+                flex: 1; /* Take available space initially */
+                max-width: 100%;
+                overflow-y: auto; /* Enable scrolling if needed */
+                max-height: calc(100vh - 70px); /* input padding + body padding */
+                padding-right: 10px; /* Space before potential scrollbar */
+                transition: flex 0.3s ease-in-out, max-width 0.3s ease-in-out;
+            }
+            .results-panel {
+                 flex-basis: 0; /* Start hidden width-wise */
+                 overflow: hidden; /* Prevent content spill before animation */
+            }
+
+            /* State when results are shown on desktop */
+            .container.results-visible .input-panel {
+                flex: 0 0 45%; /* Fixed width for input */
+                max-width: 45%;
+            }
+            .container.results-visible .results-panel {
+                display: flex; /* Show results panel */
+                flex: 1; /* Take remaining space */
+                border-left: 1px solid #50596a;
+                padding-left: 20px;
+                padding-right: 10px; /* Space before potential scrollbar */
+                max-height: calc(100vh - 70px); /* results padding + body padding */
+                overflow-y: auto; /* Enable scrolling */
+                animation: fadeInResults 0.4s ease-out;
+            }
+            .light-mode .container.results-visible .results-panel {
+                border-left-color: #dee2e6;
+            }
+
+            /* Ensure input grid is 2 columns */
+            .input-fields-grid {
+                 grid-template-columns: repeat(2, 1fr);
+            }
+            .input-fields-grid > .input-group:last-child:nth-child(odd) {
+                 grid-column: 1 / -1;
+            }
+             /* Ensure chart layout is row */
               .chart-and-numbers {
                   flex-direction: row;
                   align-items: flex-start;
@@ -463,112 +564,88 @@
               #carbonChartContainer {
                   margin: 0;
               }
-        }
 
-        @media (min-width: 992px) {
-            .container {
+            /* Ensure actions layout is row */
+            .actions {
                 flex-direction: row;
-                align-items: flex-start;
+                justify-content: space-between;
+                align-items: center;
             }
-
-            .input-panel {
-                flex: 1;
-                max-width: 100%;
-                transition: flex 0.3s ease-in-out, max-width 0.3s ease-in-out;
+             .actions > button,
+            .actions > div {
+                flex-direction: row;
+                width: auto;
             }
-            .results-panel {
-                 flex-basis: 0;
-                 overflow: hidden;
-            }
-
-            .container.results-visible .input-panel {
-                flex: 0 0 45%;
-                max-width: 45%;
-            }
-            .container.results-visible .results-panel {
-                display: flex;
-                flex: 1;
-                border-left: 1px solid #50596a;
-                padding-left: 20px;
-                max-height: calc(100vh - 70px);
-                overflow-y: auto;
-                animation: fadeInResults 0.4s ease-out;
-            }
-            .light-mode .container.results-visible .results-panel {
-                border-left-color: #dee2e6;
-            }
-
-            .input-fields-grid {
-                 grid-template-columns: repeat(2, 1fr);
-            }
-            .input-fields-grid > .input-group:last-child:nth-child(odd) {
-                 grid-column: 1 / -1;
+            button {
+                width: auto;
             }
         }
 
+        /* Animation for results panel appearing */
         @keyframes fadeInResults {
             from { opacity: 0; transform: translateX(10px); }
             to { opacity: 1; transform: translateX(0); }
         }
 
-        @media (max-width: 991px) {
+        /* Overrides for screens smaller than Desktop (handles conflicts with desktop styles) */
+        /* This is effectively the mobile/tablet state */
+        @media (max-width: 991.98px) {
             body {
-                overflow-y: auto;
+                overflow-y: auto; /* Ensure body can scroll if container gets too tall */
             }
             .container {
-                max-height: none;
-                overflow: visible;
-                padding: 15px;
-                flex-direction: column !important;
+                max-height: none; /* Remove height limit */
+                overflow: visible; /* Allow container content to flow */
+                padding: 15px; /* Slightly reduce padding */
+                flex-direction: column !important; /* Force column layout */
+                align-items: stretch; /* Stretch items */
             }
             .input-panel,
             .results-panel {
-                 max-width: 100% !important;
-                 flex-basis: auto !important;
-                 overflow-y: visible;
-                 border-left: none !important;
-                 padding-left: 0 !important;
+                 max-width: 100% !important; /* Override desktop width constraint */
+                 flex-basis: auto !important; /* Override desktop flex basis */
+                 overflow-y: visible !important; /* Prevent internal scrollbars */
+                 border-left: none !important; /* Remove desktop border */
+                 padding-left: 0 !important; /* Remove desktop padding */
+                 padding-right: 0 !important; /* Remove desktop padding */
+                 max-height: none !important; /* Remove desktop height limits */
             }
+            /* Ensure results panel is visible when class is added */
             .container.results-visible .results-panel {
                  display: flex;
             }
-            .actions {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .actions > div {
-                flex-direction: column;
-                align-items: stretch;
-                width: 100%;
-            }
-            button {
-                justify-content: center;
-            }
+            /* Actions layout already handled by default styles + 550px breakpoint */
         }
+
     </style>
 </head>
 <body>
+    <!-- Container and Panels -->
     <div class="container">
 
         <div class="input-panel">
             <h1><i class="fas fa-leaf"></i> Carbon Footprint Calc</h1>
 
              <div class="input-fields-grid">
+                 <!-- Input Group 1 -->
                  <div class="input-group">
                      <label for="milesDriven"><i class="fas fa-road input-icon"></i> Miles/Week:</label>
                      <input type="number" id="milesDriven" min="0" value="100" placeholder="e.g., 150" aria-label="Average Miles Driven per Week">
                      <span class="error-message" id="milesDrivenError"></span>
                  </div>
+                 <!-- Input Group 2 -->
                  <div class="input-group">
                      <label for="fuelEfficiency"><i class="fas fa-gas-pump input-icon"></i> MPG:</label>
                      <input type="number" id="fuelEfficiency" min="1" value="25" placeholder="e.g., 30" aria-label="Fuel Efficiency (MPG)">
                      <span class="error-message" id="fuelEfficiencyError"></span>
                  </div>
+                 <!-- Input Group 3 -->
                  <div class="input-group">
                      <label for="electricityUsage"><i class="fas fa-bolt input-icon"></i> kWh/Month:</label>
                      <input type="number" id="electricityUsage" min="0" value="300" placeholder="e.g., 900" aria-label="Monthly Electricity Usage (kWh)">
                      <span class="error-message" id="electricityUsageError"></span>
                  </div>
+                 <!-- Input Group 4 -->
                  <div class="input-group">
                      <label for="meatConsumption"><i class="fas fa-utensils input-icon"></i> Meat/Week:</label>
                      <select id="meatConsumption" aria-label="Weekly Meat Consumption">
@@ -580,6 +657,7 @@
                      </select>
                      <span class="error-message" id="meatConsumptionError"></span>
                  </div>
+                 <!-- Input Group 5 -->
                  <div class="input-group">
                      <label for="flightHours"><i class="fas fa-plane input-icon"></i> Flight hrs/Year:</label>
                      <input type="number" id="flightHours" min="0" value="0" placeholder="e.g., 20" aria-label="Total Annual Flight Hours">
@@ -587,11 +665,12 @@
                  </div>
              </div>
 
+            <!-- Action Buttons -->
             <div class="actions">
                 <button id="calculateBtn" aria-label="Calculate Carbon Footprint">
                     <i class="fas fa-calculator"></i> Calculate
                 </button>
-                <div>
+                <div> <!-- Group for Reset/Theme -->
                     <button id="resetBtn" class="secondary" aria-label="Reset Form">
                         <i class="fas fa-undo"></i> Reset
                     </button>
@@ -601,16 +680,19 @@
                 </div>
             </div>
 
+             <!-- Disclaimer -->
              <p class="disclaimer">
                  <i class="fas fa-info-circle"></i> Simplified estimates. Flight impact varies. Other lifestyle factors exist.
              </p>
         </div>
 
+        <!-- Results Panel -->
         <div class="results-panel" id="resultsPanel" role="region" aria-live="polite">
             <div id="results-content">
                  <h2><i class="fas fa-chart-pie"></i> Estimated Footprint</h2>
                  <p class="comparison-text" id="previousComparison"></p>
 
+                 <!-- Chart and Breakdown -->
                  <div class="chart-and-numbers">
                      <div id="carbonChartContainer">
                          <canvas id="carbonChart" aria-label="Carbon Footprint Breakdown Chart"></canvas>
@@ -626,10 +708,13 @@
                      </div>
                  </div>
 
+                 <!-- Comparisons -->
                  <p class="comparison-text" id="averageComparison"></p>
                  <p class="comparison-text" id="goalComparison"></p>
 
+                 <!-- Suggestions -->
                  <div id="suggestions">
+                     <!-- Suggestions populated by JS -->
                  </div>
              </div>
         </div>
@@ -637,20 +722,22 @@
     </div>
 
     <script>
+        // --- Constants ---
         const GAS_EMISSION_FACTOR_KG_PER_GALLON = 8.887;
-        const ELECTRICITY_EMISSION_FACTOR_US_AVG_KG_PER_KWH = 0.37;
-        const FLIGHT_EMISSION_FACTOR_KG_PER_HOUR = 90;
-        const TREES_ABSORPTION_RATE_KG_PER_YEAR = 22;
+        const ELECTRICITY_EMISSION_FACTOR_US_AVG_KG_PER_KWH = 0.37; // Note: Varies significantly by region
+        const FLIGHT_EMISSION_FACTOR_KG_PER_HOUR = 90; // Highly simplified average
+        const TREES_ABSORPTION_RATE_KG_PER_YEAR = 22; // Average mature tree
         const WEEKS_PER_YEAR = 52.14;
         const MONTHS_PER_YEAR = 12;
-        const AVG_US_ANNUAL_FOOTPRINT_KG = 15500;
-        const SUSTAINABILITY_TARGET_ANNUAL_KG = 5000;
-        const MIN_CHART_PERCENTAGE_TO_DISPLAY = 5;
+        const AVG_US_ANNUAL_FOOTPRINT_KG = 15500; // Approximate average per capita
+        const SUSTAINABILITY_TARGET_ANNUAL_KG = 5000; // Example target, can be adjusted
+        const MIN_CHART_PERCENTAGE_TO_DISPLAY = 5; // Hide small percentages on chart labels
         const LOCAL_STORAGE_KEYS = {
             THEME: 'themePreference',
             LAST_FOOTPRINT: 'lastCarbonFootprint'
         };
 
+        // --- DOM Element Cache ---
         const el = {
             body: document.body,
             container: document.querySelector('.container'),
@@ -664,11 +751,11 @@
             calculateButton: document.getElementById('calculateBtn'),
             resetButton: document.getElementById('resetBtn'),
             themeToggleButton: document.getElementById('themeToggleBtn'),
-            themeModeTextSpan: document.getElementById('themeModeText'),
+            themeModeTextSpan: document.getElementById('themeModeText'), // Note: This span is recreated on toggle
             milesDrivenError: document.getElementById('milesDrivenError'),
             fuelEfficiencyError: document.getElementById('fuelEfficiencyError'),
             electricityUsageError: document.getElementById('electricityUsageError'),
-            meatConsumptionError: document.getElementById('meatConsumptionError'),
+            meatConsumptionError: document.getElementById('meatConsumptionError'), // Ensure this exists if needed
             flightHoursError: document.getElementById('flightHoursError'),
             transportationValueSpan: document.getElementById('transportationValue'),
             energyValueSpan: document.getElementById('energyValue'),
@@ -685,13 +772,16 @@
             chartInstance: null,
         };
 
-
+        // --- Validation ---
         const resetErrorStates = () => {
             const inputs = [el.milesDrivenInput, el.fuelEfficiencyInput, el.electricityUsageInput, el.flightHoursInput];
             const errorSpans = [el.milesDrivenError, el.fuelEfficiencyError, el.electricityUsageError, el.flightHoursError, el.meatConsumptionError];
 
             inputs.forEach(input => input.classList.remove('error'));
             errorSpans.forEach(span => { if (span) span.textContent = ''; });
+            // No error check needed for select, but remove class if added previously
+            el.meatConsumptionSelect.classList.remove('error');
+            if (el.meatConsumptionError) el.meatConsumptionError.textContent = '';
         };
 
         const validateInputs = () => {
@@ -699,6 +789,9 @@
             let isValid = true;
 
             const validateField = (input, errorEl, minValue, errorMessage) => {
+                // Check if input exists before accessing value
+                if (!input) return true; // Skip if element not found
+
                 const value = parseFloat(input.value);
                 if (isNaN(value) || value < minValue) {
                     input.classList.add('error');
@@ -708,41 +801,51 @@
                 return true;
             };
 
+            // Validate numeric inputs
             if (!validateField(el.milesDrivenInput, el.milesDrivenError, 0, 'Must be 0 or greater.')) isValid = false;
             if (!validateField(el.fuelEfficiencyInput, el.fuelEfficiencyError, 1, 'Must be greater than 0.')) isValid = false;
             if (!validateField(el.electricityUsageInput, el.electricityUsageError, 0, 'Must be 0 or greater.')) isValid = false;
             if (!validateField(el.flightHoursInput, el.flightHoursError, 0, 'Must be 0 or greater.')) isValid = false;
 
+            // Add validation for select if needed (e.g., ensure a valid option is selected)
+            // if (!el.meatConsumptionSelect.value) { // Example check
+            //     el.meatConsumptionSelect.classList.add('error');
+            //     if (el.meatConsumptionError) el.meatConsumptionError.textContent = 'Please select an option.';
+            //     isValid = false;
+            // }
+
             return isValid;
         };
 
-
+        // --- Calculation Logic ---
         const calculateTransportationFootprint = (milesPerWeek, mpg) => {
-            if (mpg <= 0) return 0;
+            if (mpg <= 0 || milesPerWeek <= 0) return 0;
             const gallonsPerWeek = milesPerWeek / mpg;
             return gallonsPerWeek * GAS_EMISSION_FACTOR_KG_PER_GALLON;
         };
 
         const calculateEnergyFootprint = (kwhPerMonth) => {
+            if (kwhPerMonth <= 0) return 0;
             const kwhPerWeek = kwhPerMonth * (MONTHS_PER_YEAR / WEEKS_PER_YEAR);
             return kwhPerWeek * ELECTRICITY_EMISSION_FACTOR_US_AVG_KG_PER_KWH;
         };
 
         const calculateDietFootprint = (meatLevelString) => {
+            // kg CO2e per week (very rough estimates)
             const dietFactors = {
-                '-1': 5,
-                '0': 15,
-                '1': 30,
-                '2': 55,
-                '3': 80
+                '-1': 5,  // Vegan/Vegetarian
+                '0': 15, // Very Low Meat
+                '1': 30, // Low Meat
+                '2': 55, // Moderate Meat (Default)
+                '3': 80  // High Meat
             };
-            return dietFactors[meatLevelString] || 55;
+            return dietFactors[meatLevelString] || 55; // Default to moderate if invalid
         };
 
         const calculateFlightFootprint = (hoursPerYear) => {
             if (hoursPerYear <= 0) return 0;
             const totalFlightEmissions = hoursPerYear * FLIGHT_EMISSION_FACTOR_KG_PER_HOUR;
-            return totalFlightEmissions / WEEKS_PER_YEAR;
+            return totalFlightEmissions / WEEKS_PER_YEAR; // Average weekly impact
         };
 
         const calculateTotalWeeklyFootprint = (transportWk, energyWk, dietWk, flightsWk) => {
@@ -755,10 +858,11 @@
             return Math.ceil(annualFootprint / TREES_ABSORPTION_RATE_KG_PER_YEAR);
         };
 
-
+        // --- Display Logic ---
         const displayCalculationResults = (data) => {
             const { transportWk, energyWk, dietWk, flightsWk, totalWk, treesYr, annualTotal } = data;
 
+            // Update numerical values
             el.transportationValueSpan.textContent = transportWk.toFixed(1);
             el.energyValueSpan.textContent = energyWk.toFixed(1);
             el.dietValueSpan.textContent = dietWk.toFixed(1);
@@ -766,25 +870,32 @@
             el.totalFootprintSpan.textContent = totalWk.toFixed(1);
             el.treesRequiredSpan.textContent = treesYr.toLocaleString();
 
+            // Update comparison texts
             displayLocalStorageComparison(totalWk);
             displayAverageComparison(annualTotal);
             displayGoalComparison(annualTotal);
 
+            // Update chart
             updateCarbonChart(transportWk, energyWk, dietWk, flightsWk);
 
+            // Update suggestions
             updateSuggestions(data);
 
+            // Make results visible
             el.container.classList.add('results-visible');
+            el.resultsPanel.style.display = 'flex'; // Ensure it's flex for layout
 
+             // Scroll to results on smaller screens after a short delay
              if (window.innerWidth < 992) {
                   setTimeout(() => {
+                      // Use block: 'nearest' to avoid unnecessary scrolling if already mostly visible
                        el.resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                  }, 50);
+                  }, 100); // Delay allows layout shift
              }
         };
 
         const displayLocalStorageComparison = (currentTotalWk) => {
-            el.previousComparisonP.innerHTML = '';
+            el.previousComparisonP.innerHTML = ''; // Clear previous
             try {
                 const lastDataRaw = localStorage.getItem(LOCAL_STORAGE_KEYS.LAST_FOOTPRINT);
                 if (lastDataRaw) {
@@ -796,24 +907,24 @@
                         const difference = currentTotalWk - lastTotalWk;
                         let iconClass = 'fa-equals';
                         let comparisonText = `Similar to calculation on ${calcDate}.`;
+                        const threshold = 0.1; // Only show arrows for changes > 0.1 kg
 
-                        if (Math.abs(difference) >= 0.1) {
-                             if (difference < 0) {
-                                 comparisonText = `<strong>${Math.abs(difference).toFixed(1)} kg lower</strong>/wk vs ${calcDate}.`;
-                                 iconClass = 'fa-arrow-down';
-                             } else {
-                                 comparisonText = `<strong>${difference.toFixed(1)} kg higher</strong>/wk vs ${calcDate}.`;
-                                 iconClass = 'fa-arrow-up';
-                             }
+                        if (difference < -threshold) {
+                             comparisonText = `<strong>${Math.abs(difference).toFixed(1)} kg lower</strong>/wk vs ${calcDate}.`;
+                             iconClass = 'fa-arrow-down';
+                        } else if (difference > threshold) {
+                             comparisonText = `<strong>${difference.toFixed(1)} kg higher</strong>/wk vs ${calcDate}.`;
+                             iconClass = 'fa-arrow-up';
                         }
                         el.previousComparisonP.innerHTML = `<i class="fas ${iconClass}"></i> ${comparisonText}`;
                     } else {
+                        // Clear invalid data
                         localStorage.removeItem(LOCAL_STORAGE_KEYS.LAST_FOOTPRINT);
                     }
                 }
             } catch (e) {
-                console.error("Error reading or parsing last footprint data from localStorage:", e);
-                localStorage.removeItem(LOCAL_STORAGE_KEYS.LAST_FOOTPRINT);
+                console.error("Error reading/parsing localStorage footprint:", e);
+                localStorage.removeItem(LOCAL_STORAGE_KEYS.LAST_FOOTPRINT); // Clear on error
             }
          };
 
@@ -822,7 +933,7 @@
         const displayAverageComparison = (annualTotal) => {
              const difference = annualTotal - AVG_US_ANNUAL_FOOTPRINT_KG;
              let comparisonText = `Annual: <strong>${formatNumber(annualTotal)} kg</strong>. `;
-             const significantDifference = 50;
+             const significantDifference = 100; // Threshold for saying "above/below" vs "similar"
 
              if (difference < -significantDifference) {
                   comparisonText += `(~<strong>${formatNumber(Math.abs(difference))} kg below</strong> US avg of ${formatNumber(AVG_US_ANNUAL_FOOTPRINT_KG)} kg).`;
@@ -838,7 +949,7 @@
             const difference = annualTotal - SUSTAINABILITY_TARGET_ANNUAL_KG;
             let comparisonText = '';
              if (difference <= 0) {
-                  comparisonText = `Below target of <strong>${formatNumber(SUSTAINABILITY_TARGET_ANNUAL_KG)} kg/yr</strong>. Well done!`;
+                  comparisonText = `Below sustainability target of <strong>${formatNumber(SUSTAINABILITY_TARGET_ANNUAL_KG)} kg/yr</strong>. Well done!`;
              } else {
                   comparisonText = `~<strong>${formatNumber(difference)} kg/yr above</strong> sustainability target of ${formatNumber(SUSTAINABILITY_TARGET_ANNUAL_KG)} kg.`;
              }
@@ -847,18 +958,19 @@
 
         const updateCarbonChart = (transportation, energy, diet, flights) => {
             if (el.chartInstance) {
-                el.chartInstance.destroy();
+                el.chartInstance.destroy(); // Clear previous chart
             }
 
             const isLightMode = el.body.classList.contains('light-mode');
             const chartTextColor = isLightMode ? '#40495a' : '#e0e6ed';
-            const chartBorderColor = isLightMode ? '#ffffff' : '#343a40';
+            const chartBorderColor = isLightMode ? '#ffffff' : '#343a40'; // Match container background
             const tooltipBgColor = isLightMode ? 'rgba(0,0,0,0.75)' : 'rgba(255,255,255,0.85)';
             const tooltipTextColor = isLightMode ? '#ffffff' : '#000000';
 
+            // Ensure non-negative values for chart, use a tiny value if zero for visual consistency
             const chartDataValues = [transportation, energy, diet, flights].map(v => Math.max(v, 0.01));
             const chartLabels = ['Driving', 'Energy', 'Diet', 'Flights'];
-            const backgroundColors = ['#5cb85c', '#5bc0de', '#f0ad4e', '#d9534f'];
+            const backgroundColors = ['#5cb85c', '#5bc0de', '#f0ad4e', '#d9534f']; // Green, Blue, Orange, Red
             const total = chartDataValues.reduce((sum, value) => sum + value, 0);
 
             const chartConfig = {
@@ -868,87 +980,108 @@
                     datasets: [{
                         data: chartDataValues,
                         backgroundColor: backgroundColors,
-                        borderColor: chartBorderColor,
+                        borderColor: chartBorderColor, // Match panel background
                         borderWidth: 1.5,
-                        hoverOffset: 4
+                        hoverOffset: 4 // Slightly lift segment on hover
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '65%',
+                    maintainAspectRatio: false, // Allow chart to fit container dimensions
+                    cutout: '65%', // Doughnut thickness
                     layout: {
-                        padding: 5
+                        padding: 5 // Padding inside the canvas
                     },
                     plugins: {
                         legend: {
-                            display: false
+                            display: false // Legend not needed, labels are on chart/breakdown
                         },
                         title: {
-                            display: false
+                            display: false // No chart title needed
                         },
                         tooltip: {
+                            enabled: true,
                             backgroundColor: tooltipBgColor,
                             titleColor: tooltipTextColor,
                             bodyColor: tooltipTextColor,
                             bodyFont: { size: 11 },
                             padding: 8,
+                            cornerRadius: 4,
+                            displayColors: false, // Hide color box in tooltip
                             callbacks: {
                                 label: (context) => {
                                     let label = context.label || '';
                                     if (label) { label += ': '; }
                                     const value = context.parsed;
                                     if (value !== null) {
-                                        label += value.toFixed(1) + ' kg';
+                                        // Display actual value (not the 0.01 minimum)
+                                        const originalValue = context.dataset.data[context.dataIndex] < 0.1 ? 0 : context.dataset.data[context.dataIndex];
+                                        label += originalValue.toFixed(1) + ' kg';
                                         if (total > 0.1) {
-                                            const percentage = ((value / total) * 100).toFixed(0);
-                                            label += ` (${percentage}%)`;
+                                            const percentage = ((originalValue / total) * 100);
+                                            // Only show percentage if it's reasonably large
+                                            if (percentage >= 1) {
+                                                 label += ` (${percentage.toFixed(0)}%)`;
+                                            }
                                         }
                                     }
                                     return label;
                                 }
                             }
                          },
-                        datalabels: {
+                        datalabels: { // Configure chartjs-plugin-datalabels
                             formatter: (value, context) => {
-                                if (total < 0.1) return '';
-                                const percentage = (value / total) * 100;
-                                return percentage > MIN_CHART_PERCENTAGE_TO_DISPLAY ? percentage.toFixed(0) + "%" : '';
+                                if (total < 0.1) return ''; // Avoid dividing by zero/tiny number
+                                const originalValue = context.dataset.data[context.dataIndex];
+                                const percentage = (originalValue / total) * 100;
+                                // Only display label if percentage is above threshold
+                                return percentage >= MIN_CHART_PERCENTAGE_TO_DISPLAY ? percentage.toFixed(0) + "%" : '';
                             },
                             color: (context) => {
+                               // Determine best text color (black/white) based on background segment color
                                const bgColor = context.dataset.backgroundColor[context.dataIndex];
+                               // Simple luminance check
                                const r = parseInt(bgColor.slice(1, 3), 16);
                                const g = parseInt(bgColor.slice(3, 5), 16);
                                const b = parseInt(bgColor.slice(5, 7), 16);
                                const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-                               return luminance > 0.5 ? '#000000' : '#ffffff';
+                               return luminance > 0.5 ? '#000000' : '#ffffff'; // Black on light, White on dark
                             },
                             font: {
                                 weight: 'bold',
                                 size: 10
                             },
+                            // anchor: 'end', // Position label relative to segment
+                            // align: 'start',
+                            // offset: -10, // Adjust position
                         }
                     }
                 },
-                plugins: [ChartDataLabels]
+                plugins: [ChartDataLabels] // Register the plugin
             };
 
-            el.chartInstance = new Chart(el.chartCanvas, chartConfig);
+            // Create the chart
+            if (el.chartCanvas) {
+                 el.chartInstance = new Chart(el.chartCanvas.getContext('2d'), chartConfig);
+            } else {
+                console.error("Chart canvas element not found");
+            }
         };
 
         const updateSuggestions = (data) => {
              const { transportWk, energyWk, dietWk, flightsWk, totalWk } = data;
-             el.suggestionsDiv.innerHTML = "<h3><i class='fas fa-lightbulb'></i> Top Suggestions:</h3>";
+             el.suggestionsDiv.innerHTML = "<h3><i class='fas fa-lightbulb'></i> Top Suggestions:</h3>"; // Clear previous & add heading
              const suggestionsList = document.createElement('ul');
 
+             // Define potential suggestions with conditions and text
              const potentialSuggestions = [
                  {
                    name: 'transport',
                    value: transportWk,
-                   threshold: Math.max(totalWk * 0.20, 5),
-                   condition: () => transportWk > 1,
+                   threshold: Math.max(totalWk * 0.20, 5), // Significant if > 20% or > 5kg
+                   condition: () => transportWk > 1, // Only suggest if non-trivial amount
                    getText: () => {
-                       const mpg = parseFloat(el.fuelEfficiencyInput.value);
+                       const mpg = parseFloat(el.fuelEfficiencyInput.value) || 25; // Use default if invalid
                        if (mpg < 28) {
                            return `Consider improving fuel efficiency (<a href="https://www.fueleconomy.gov/feg/maintain.jsp" target="_blank" rel="noopener noreferrer">Maintenance Tips</a>) or driving less.`;
                        } else {
@@ -961,68 +1094,77 @@
                    value: energyWk,
                    threshold: Math.max(totalWk * 0.20, 5),
                    condition: () => energyWk > 1,
-                   getText: () => `Reduce home energy use (<a href="https://www.energystar.gov/saveathome" target="_blank" rel="noopener noreferrer">EnergyStar Tips</a>).`
+                   getText: () => `Reduce home energy use (<a href="https://www.energystar.gov/saveathome" target="_blank" rel="noopener noreferrer">EnergyStar Tips</a>). Check for renewable energy options from your provider.`
                  },
                  {
                    name: 'diet',
                    value: dietWk,
-                   threshold: Math.max(totalWk * 0.15, 3),
-                   condition: () => el.meatConsumptionSelect.value !== "-1",
-                   getText: () => `Try reducing meat consumption (<a href="https://www.eatingwell.com/recipes/17988/vegetarian/" target="_blank" rel="noopener noreferrer">Plant-Based Recipes</a>).`
+                   threshold: Math.max(totalWk * 0.15, 3), // Lower threshold for diet
+                   condition: () => el.meatConsumptionSelect.value !== "-1", // Suggest unless already vegan/veg
+                   getText: () => `Try reducing meat consumption, especially red meat (<a href="https://www.eatingwell.com/recipes/17988/vegetarian/" target="_blank" rel="noopener noreferrer">Plant-Based Recipes</a>).`
                  },
                  {
                    name: 'flights',
                    value: flightsWk,
                    threshold: Math.max(totalWk * 0.15, 3),
-                   condition: () => flightsWk > 0.1,
-                   getText: () => `Minimize air travel when possible or consider offsetting flights (<a href="https://www.epa.gov/climateleadership/offsetting-ghg-emissions" target="_blank" rel="noopener noreferrer">Offset Info</a>).`
+                   condition: () => flightsWk > 0.1, // Only suggest if there are any flights
+                   getText: () => `Minimize air travel when possible or consider offsetting flights (<a href="https://sustainabletravel.org/our-work/carbon-offsets/" target="_blank" rel="noopener noreferrer">Offset Info</a>).`
                  }
              ];
 
+             // Filter, sort (highest impact first), and limit suggestions
              const validSuggestions = potentialSuggestions
                  .filter(item => item.condition() && item.value >= item.threshold && item.getText() !== null)
-                 .sort((a, b) => b.value - a.value);
+                 .sort((a, b) => b.value - a.value); // Sort descending by impact
 
              let suggestionsCount = 0;
-             const maxSuggestionsToShow = 2;
+             const maxSuggestionsToShow = 2; // Show top 2 relevant suggestions
 
              validSuggestions.forEach(item => {
-                 if (suggestionsCount >= maxSuggestionsToShow) return;
+                 if (suggestionsCount >= maxSuggestionsToShow) return; // Limit displayed suggestions
                  let li = document.createElement('li');
-                 li.innerHTML = `<i class="fas fa-chevron-right"></i> ${item.getText()}`;
+                 li.innerHTML = `<i class="fas fa-chevron-right"></i> ${item.getText()}`; // Add icon and text
                  suggestionsList.appendChild(li);
                  suggestionsCount++;
              });
 
+             // Add a default message if no specific suggestions apply or footprint is low
              if (suggestionsList.children.length === 0) {
                   let li = document.createElement('li');
-                  if (totalWk > 1) {
-                      li.innerHTML = `<i class="fas fa-check-circle"></i> Footprint low in major categories. Consider broader lifestyle choices for further reduction.`;
+                  if (totalWk > 1) { // If footprint isn't near zero
+                      li.innerHTML = `<i class="fas fa-check-circle"></i> Footprint relatively low in major categories. Consider other factors like purchasing habits for further reduction.`;
                   } else {
                       li.innerHTML = `<i class="fas fa-leaf"></i> Your estimated footprint seems very low! Keep up the great work.`;
                   }
                   suggestionsList.appendChild(li);
              }
 
-             el.suggestionsDiv.appendChild(suggestionsList);
+             el.suggestionsDiv.appendChild(suggestionsList); // Add the list to the DOM
          };
 
-
+        // --- Event Handlers ---
         const handleCalculateClick = () => {
             if (!validateInputs()) {
+                // Shake the container slightly to indicate validation error
+                 el.container.style.animation = 'shake 0.5s ease-in-out';
+                 setTimeout(() => { el.container.style.animation = ''; }, 500);
                 return;
             }
 
-            const miles = parseFloat(el.milesDrivenInput.value);
-            const mpg = parseFloat(el.fuelEfficiencyInput.value);
-            const kwh = parseFloat(el.electricityUsageInput.value);
+            // Get validated values
+            const miles = parseFloat(el.milesDrivenInput.value) || 0;
+            const mpg = parseFloat(el.fuelEfficiencyInput.value) || 1; // Avoid division by zero
+            const kwh = parseFloat(el.electricityUsageInput.value) || 0;
             const meatLevel = el.meatConsumptionSelect.value;
-            const flightHours = parseFloat(el.flightHoursInput.value);
+            const flightHours = parseFloat(el.flightHoursInput.value) || 0;
 
+            // Provide visual feedback
             el.calculateButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculating...';
             el.calculateButton.disabled = true;
 
+            // Simulate calculation delay (optional, makes transition smoother)
             setTimeout(() => {
+                // Perform calculations
                 const transportWk = calculateTransportationFootprint(miles, mpg);
                 const energyWk = calculateEnergyFootprint(kwh);
                 const dietWk = calculateDietFootprint(meatLevel);
@@ -1033,11 +1175,13 @@
 
                 const resultsData = { transportWk, energyWk, dietWk, flightsWk, totalWk, treesYr, annualTotal };
 
+                // Display results
                 displayCalculationResults(resultsData);
 
+                // Save current result to localStorage (optional)
                 const saveData = {
                     totalWk: totalWk.toFixed(1),
-                    date: new Date().toISOString()
+                    date: new Date().toISOString() // Store timestamp
                 };
                 try {
                     localStorage.setItem(LOCAL_STORAGE_KEYS.LAST_FOOTPRINT, JSON.stringify(saveData));
@@ -1045,39 +1189,47 @@
                     console.warn("Could not save calculation result to localStorage:", e);
                 }
 
+                // Reset button state after a short delay
                 el.calculateButton.innerHTML = '<i class="fas fa-check"></i> Done!';
                 setTimeout(() => {
                     el.calculateButton.innerHTML = '<i class="fas fa-calculator"></i> Calculate';
                     el.calculateButton.disabled = false;
                 }, 1500);
 
-            }, 150);
+            }, 250); // Short delay for spinner visibility
         };
 
         const handleResetClick = () => {
+            // Reset input fields to defaults
             el.milesDrivenInput.value = 100;
             el.fuelEfficiencyInput.value = 25;
             el.electricityUsageInput.value = 300;
-            el.meatConsumptionSelect.value = '2';
+            el.meatConsumptionSelect.value = '2'; // Moderate
             el.flightHoursInput.value = 0;
 
-            resetErrorStates();
+            resetErrorStates(); // Clear any validation errors
 
+            // Hide results panel and remove class
             el.container.classList.remove('results-visible');
+            el.resultsPanel.style.display = 'none';
 
+            // Clear comparison texts
             el.previousComparisonP.innerHTML = '';
             el.averageComparisonP.innerHTML = '';
             el.goalComparisonP.innerHTML = '';
 
+            // Destroy chart and clear suggestions
             if (el.chartInstance) {
                 el.chartInstance.destroy();
                 el.chartInstance = null;
             }
-            el.suggestionsDiv.innerHTML = '';
+            el.suggestionsDiv.innerHTML = ''; // Clear suggestions content
 
+            // Reset result values display
             const resultSpans = [el.transportationValueSpan, el.energyValueSpan, el.dietValueSpan, el.flightValueSpan, el.totalFootprintSpan, el.treesRequiredSpan];
-            resultSpans.forEach(span => { span.textContent = '0.0'; });
+            resultSpans.forEach(span => { if (span) span.textContent = '0.0'; });
 
+             // Scroll back to the input panel on smaller screens
              if (window.innerWidth < 992) {
                   el.inputPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
              }
@@ -1085,26 +1237,31 @@
 
         const handleThemeToggleClick = () => {
             const isNowLight = el.body.classList.toggle('light-mode');
-            el.container.classList.toggle('light-mode', isNowLight);
+            // Toggling on container might not be necessary if styles inherit well from body
+            // el.container.classList.toggle('light-mode', isNowLight); // Optional
 
             const iconClass = isNowLight ? 'fa-moon' : 'fa-sun';
             const modeText = isNowLight ? 'Dark' : 'Light';
+            // Update button HTML (make sure the span ID isn't required elsewhere or update cache)
             el.themeToggleButton.innerHTML = `<i class="fas ${iconClass}"></i> <span id="themeModeText">${modeText}</span>`;
 
+            // Redraw chart if visible with new theme colors
             if (el.chartInstance && el.container.classList.contains('results-visible')) {
                  try {
+                     // Retrieve current values from display to redraw
                      const t = parseFloat(el.transportationValueSpan.textContent) || 0;
                      const e = parseFloat(el.energyValueSpan.textContent) || 0;
                      const d = parseFloat(el.dietValueSpan.textContent) || 0;
                      const f = parseFloat(el.flightValueSpan.textContent) || 0;
                      if (![t, e, d, f].some(isNaN)) {
-                         updateCarbonChart(t, e, d, f);
+                         updateCarbonChart(t, e, d, f); // Redraw with current data
                      }
                  } catch (err) {
-                     console.error("Error retrieving values or redrawing chart on theme toggle:", err);
+                     console.error("Error redrawing chart on theme toggle:", err);
                  }
             }
 
+            // Save theme preference
             try {
                 localStorage.setItem(LOCAL_STORAGE_KEYS.THEME, isNowLight ? 'light' : 'dark');
             } catch (e) {
@@ -1112,44 +1269,63 @@
             }
         };
 
+        // --- Initialization ---
         const initializeTheme = () => {
-             let preferredTheme = 'dark';
+             let preferredTheme = 'dark'; // Default theme
              try {
                  preferredTheme = localStorage.getItem(LOCAL_STORAGE_KEYS.THEME) || 'dark';
              } catch (e) {
                  console.warn("Could not read theme preference from localStorage:", e);
              }
 
-             if (preferredTheme === 'light') {
-                 el.body.classList.add('light-mode');
-                 el.container.classList.add('light-mode');
-                 el.themeToggleButton.innerHTML = '<i class="fas fa-moon"></i> <span id="themeModeText">Dark</span>';
-             } else {
-                 el.body.classList.remove('light-mode');
-                 el.container.classList.remove('light-mode');
-                 el.themeToggleButton.innerHTML = '<i class="fas fa-sun"></i> <span id="themeModeText">Light</span>';
-             }
+             // Apply the theme immediately on load
+             const isLight = preferredTheme === 'light';
+             el.body.classList.toggle('light-mode', isLight);
+            //  el.container.classList.toggle('light-mode', isLight); // Optional
+
+             // Set the theme toggle button state correctly
+             const iconClass = isLight ? 'fa-moon' : 'fa-sun';
+             const modeText = isLight ? 'Dark' : 'Light';
+             el.themeToggleButton.innerHTML = `<i class="fas ${iconClass}"></i> <span id="themeModeText">${modeText}</span>`;
          };
 
+        // --- Event Listeners ---
         el.calculateButton.addEventListener('click', handleCalculateClick);
         el.resetButton.addEventListener('click', handleResetClick);
         el.themeToggleButton.addEventListener('click', handleThemeToggleClick);
 
+        // Clear error state on input
         const inputsToClearOnError = [el.milesDrivenInput, el.fuelEfficiencyInput, el.electricityUsageInput, el.flightHoursInput];
         inputsToClearOnError.forEach(input => {
+            if (!input) return; // Check if input exists
             input.addEventListener('input', () => {
                 if (input.classList.contains('error')) {
                     input.classList.remove('error');
+                    // Find corresponding error span dynamically
                     const errorSpan = document.getElementById(input.id + 'Error');
                     if (errorSpan) errorSpan.textContent = '';
                 }
             });
         });
+        // Add similar listener for select if needed
+        // el.meatConsumptionSelect.addEventListener('change', () => { ... });
 
 
+        // --- Run on Load ---
         document.addEventListener('DOMContentLoaded', () => {
             initializeTheme();
-            Chart.register(ChartDataLabels);
+            Chart.register(ChartDataLabels); // Register the datalabels plugin globally
+             // Define shake animation if not already in CSS
+             if (!document.styleSheets[0].cssRules.length || ![...document.styleSheets[0].cssRules].some(rule => rule.name === 'shake')) {
+                const styleSheet = document.styleSheets[0];
+                styleSheet.insertRule(`
+                    @keyframes shake {
+                      0%, 100% { transform: translateX(0); }
+                      25% { transform: translateX(-4px); }
+                      75% { transform: translateX(4px); }
+                    }
+                `, styleSheet.cssRules.length);
+            }
         });
 
     </script>
